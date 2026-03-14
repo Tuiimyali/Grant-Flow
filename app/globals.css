@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* ── App palette ─────────────────────────────────────────── */
+:root {
+  /* Sidebar */
+  --sidebar-bg:        #0d1825;
+  --sidebar-border:    #1c2d40;
+  --sidebar-item-hover: rgba(255,255,255,0.05);
+
+  /* Gold accent */
+  --gold:              #d4a843;
+  --gold-bg:           rgba(212,168,67,0.10);
+  --gold-border:       rgba(212,168,67,0.25);
+
+  /* Content surface */
+  --surface:           #f1f5f9;
+  --surface-border:    #e2e8f0;
+}
+
+@theme inline {
+  --color-background:     var(--background);
+  --color-foreground:     var(--foreground);
+  --font-sans:            var(--font-geist-sans);
+  --font-mono:            var(--font-geist-mono);
+
+  /* Sidebar tokens */
+  --color-sidebar:        var(--sidebar-bg);
+  --color-sidebar-border: var(--sidebar-border);
+
+  /* Gold tokens */
+  --color-gold:           var(--gold);
+
+  /* Surface tokens */
+  --color-surface:        var(--surface);
+  --color-surface-border: var(--surface-border);
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans, Arial, sans-serif);
+}
