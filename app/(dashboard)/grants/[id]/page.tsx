@@ -8,7 +8,13 @@ import { DeadlineBadge } from '@/components/badges'
 import { formatCurrency } from '@/lib/utils/formatting'
 import { fitBand, FIT_COLORS } from '@/lib/utils/scoring'
 import { DIMENSION_LABELS } from '@/lib/scoring/calculate-fit'
-import type { GrantsFullRow, GrantSection, GrantAttachment, FitBreakdown } from '@/lib/types/database.types'
+import type {
+  GrantsFullRow,
+  GrantSection,
+  GrantAttachment,
+  FitBreakdown,
+  ReviewCriterion,
+} from '@/lib/types/database.types'
 
 /* ── Local builder types (UI-only id for keying) ────────────── */
 
@@ -20,13 +26,13 @@ function uid() { return Math.random().toString(36).slice(2, 9) }
 function toSectionRows(sections: GrantSection[] | null): SectionRow[] {
   return (sections ?? []).map(s => ({
     _id: uid(),
-    title: s.title,
+    title: s.title ?? '',
     page_limit: s.page_limit != null ? String(s.page_limit) : '',
   }))
 }
 
 function toAttachmentRows(attachments: GrantAttachment[] | null): AttachmentRow[] {
-  return (attachments ?? []).map(a => ({ _id: uid(), name: a.name }))
+  return (attachments ?? []).map(a => ({ _id: uid(), name: a.name ?? '' }))
 }
 
 /* ── Status pill styles ─────────────────────────────────────── */
@@ -50,15 +56,19 @@ export default function GrantDetailPage() {
   const { id }  = useParams<{ id: string }>()
   const router  = useRouter()
 
-  const [grant,       setGrant]       = useState<GrantsFullRow | null>(null)
-  const [sections,    setSections]    = useState<SectionRow[]>([])
-  const [attachments, setAttachments] = useState<AttachmentRow[]>([])
-  const [description, setDescription] = useState('')
-  const [loading,     setLoading]     = useState(true)
-  const [notFound,    setNotFound]    = useState(false)
-  const [breakdown,   setBreakdown]   = useState<FitBreakdown | null>(null)
-  const [saving,      setSaving]      = useState(false)
-  const [saveStatus,  setSaveStatus]  = useState<'idle' | 'saved' | 'error'>('idle')
+  const [grant,               setGrant]               = useState<GrantsFullRow | null>(null)
+  const [sections,            setSections]            = useState<SectionRow[]>([])
+  const [attachments,         setAttachments]         = useState<AttachmentRow[]>([])
+  const [description,         setDescription]         = useState('')
+  const [sourceUrl,           setSourceUrl]           = useState<string | null>(null)
+  const [reviewCriteria,      setReviewCriteria]      = useState<ReviewCriterion[]>([])
+  const [reqSummary,          setReqSummary]          = useState('')
+  const [loading,             setLoading]             = useState(true)
+  const [notFound,            setNotFound]            = useState(false)
+  const [breakdown,           setBreakdown]           = useState<FitBreakdown | null>(null)
+  const [saving,              setSaving]              = useState(false)
+  const [saveStatus,          setSaveStatus]          = useState<'idle' | 'saved' | 'error'>('idle')
+  const [startingDraft,       setStartingDraft]       = useState(false)
 
   /* ── Fetch ──────────────────────────────────────────────── */
 
@@ -71,7 +81,11 @@ export default function GrantDetailPage() {
 
       const [{ data: full }, { data: detail }, { data: match }] = await Promise.all([
         supabase.from('grants_full').select('*').eq('id', id).single(),
-        supabase.from('grants').select('sections, attachments, description').eq('id', id).single(),
+        supabase
+          .from('grants')
+          .select('sections, attachments, description, source_url, review_criteria, requirements_summary')
+          .eq('id', id)
+          .single(),
         supabase.from('grant_matches').select('score_breakdown').eq('grant_id', id).maybeSingle(),
       ])
 
@@ -79,11 +93,23 @@ export default function GrantDetailPage() {
 
       if (!full) { setNotFound(true); setLoading(false); return }
 
+      const d = detail as {
+        sections: GrantSection[] | null
+        attachments: GrantAttachment[] | null
+        description: string | null
+        source_url: string | null
+        review_criteria: ReviewCriterion[] | null
+        requirements_summary: string | null
+      } | null
+
       setGrant(full as GrantsFullRow)
-      setSections(toSectionRows((detail as any)?.sections ?? null))
-      setAttachments(toAttachmentRows((detail as any)?.attachments ?? null))
-      setDescription((detail as any)?.description ?? '')
-      setBreakdown((match as any)?.score_breakdown ?? null)
+      setSections(toSectionRows(d?.sections ?? null))
+      setAttachments(toAttachmentRows(d?.attachments ?? null))
+      setDescription(d?.description ?? '')
+      setSourceUrl(d?.source_url ?? null)
+      setReviewCriteria(d?.review_criteria ?? [])
+      setReqSummary(d?.requirements_summary ?? '')
+      setBreakdown((match as { score_breakdown: FitBreakdown | null } | null)?.score_breakdown ?? null)
       setLoading(false)
     }
 
@@ -137,7 +163,7 @@ export default function GrantDetailPage() {
     })
   }
 
-  /* ── Save sections/attachments ──────────────────────────── */
+  /* ── Save ───────────────────────────────────────────────── */
 
   async function handleSave() {
     if (!id) return
@@ -154,12 +180,30 @@ export default function GrantDetailPage() {
         attachments: attachments
           .filter(a => a.name.trim())
           .map(a => ({ name: a.name.trim() })),
+        review_criteria: reviewCriteria,
+        requirements_summary: reqSummary.trim() || null,
       })
       .eq('id', id)
 
     setSaving(false)
     setSaveStatus(error ? 'error' : 'saved')
     if (!error) setTimeout(() => setSaveStatus('idle'), 2500)
+  }
+
+  /* ── Start Draft ────────────────────────────────────────── */
+
+  async function handleStartDraft() {
+    if (!id || !grant) return
+    setStartingDraft(true)
+    const supabase = createClient()
+
+    // Update pipeline status to 'writing'
+    await supabase
+      .from('pipeline_items')
+      .update({ status: 'writing' })
+      .eq('grant_id', id)
+
+    router.push('/drafts')
   }
 
   /* ── Render ─────────────────────────────────────────────── */
@@ -174,7 +218,7 @@ export default function GrantDetailPage() {
   )
 
   const g = grant!
-  const status  = STATUS_STYLES[g.pipeline_status] ?? STATUS_STYLES.discovered
+  const status   = STATUS_STYLES[g.pipeline_status] ?? STATUS_STYLES.discovered
   const fitBand_ = fitBand(g.fit_score)
   const fitColor = FIT_COLORS[fitBand_]
 
@@ -190,7 +234,6 @@ export default function GrantDetailPage() {
 
       {/* ── Header ──────────────────────────────────────────── */}
       <header className="bg-white border-b border-slate-200 px-6 py-4">
-        {/* Back link */}
         <Link href="/grants"
           className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors mb-3">
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -225,6 +268,15 @@ export default function GrantDetailPage() {
               <span className="text-sm font-semibold text-slate-700">{amountStr}</span>
             )}
             <DeadlineBadge date={g.deadline} />
+            <button
+              onClick={handleStartDraft}
+              disabled={startingDraft}
+              className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white
+                disabled:opacity-60 transition-opacity"
+              style={{ backgroundColor: 'var(--gold)' }}
+            >
+              {startingDraft ? 'Starting…' : 'Start Draft'}
+            </button>
           </div>
         </div>
       </header>
@@ -232,10 +284,10 @@ export default function GrantDetailPage() {
       {/* ── Body ────────────────────────────────────────────── */}
       <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-6 items-start">
 
-        {/* ── Left: Overview ──────────────────────────────── */}
+        {/* ── Left column ─────────────────────────────────── */}
         <div className="space-y-4">
 
-          {/* Key facts */}
+          {/* Overview */}
           <Card title="Overview">
             <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
               <Fact label="Category">{g.category ?? '—'}</Fact>
@@ -243,6 +295,18 @@ export default function GrantDetailPage() {
               <Fact label="Deadline">{g.deadline ?? '—'}</Fact>
               <Fact label="Effort">{g.effort_weeks != null ? `${g.effort_weeks} weeks` : '—'}</Fact>
               {amountStr && <Fact label="Amount" wide>{amountStr}</Fact>}
+              {sourceUrl && (
+                <Fact label="Source" wide>
+                  <a
+                    href={sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-amber-600 hover:underline break-all"
+                  >
+                    {sourceUrl}
+                  </a>
+                </Fact>
+              )}
             </dl>
           </Card>
 
@@ -264,6 +328,39 @@ export default function GrantDetailPage() {
           {description && (
             <Card title="Description">
               <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{description}</p>
+            </Card>
+          )}
+
+          {/* Requirements Summary */}
+          {reqSummary && (
+            <Card title="What the Funder is Looking For">
+              <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{reqSummary}</p>
+            </Card>
+          )}
+
+          {/* Review Criteria */}
+          {reviewCriteria.length > 0 && (
+            <Card title="Review Criteria">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left border-b border-slate-100">
+                      <th className="pb-2 pr-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400 w-2/5">Criterion</th>
+                      <th className="pb-2 pr-4 text-[10px] font-semibold uppercase tracking-wide text-slate-400 w-16">Weight</th>
+                      <th className="pb-2 text-[10px] font-semibold uppercase tracking-wide text-slate-400">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {reviewCriteria.map((c, i) => (
+                      <tr key={i} className="align-top">
+                        <td className="py-2.5 pr-4 font-medium text-slate-700">{c.criterion}</td>
+                        <td className="py-2.5 pr-4 text-slate-500 tabular-nums">{c.weight || '—'}</td>
+                        <td className="py-2.5 text-slate-500 leading-relaxed">{c.description || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </Card>
           )}
 
@@ -325,7 +422,7 @@ export default function GrantDetailPage() {
         <div className="space-y-4">
 
           {/* Sections builder */}
-          <Card title={`Sections${sections.length ? ` (${sections.length})` : ''}`}
+          <Card title={`Application Sections${sections.length ? ` (${sections.length})` : ''}`}
             action={
               <button onClick={addSection}
                 className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-amber-600 transition-colors">
@@ -375,7 +472,7 @@ export default function GrantDetailPage() {
           </Card>
 
           {/* Attachments builder */}
-          <Card title={`Attachments${attachments.length ? ` (${attachments.length})` : ''}`}
+          <Card title={`Required Attachments${attachments.length ? ` (${attachments.length})` : ''}`}
             action={
               <button onClick={addAttachment}
                 className="flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-amber-600 transition-colors">
@@ -413,6 +510,17 @@ export default function GrantDetailPage() {
                 ))}
               </div>
             )}
+          </Card>
+
+          {/* Requirements Summary editor */}
+          <Card title="Requirements Summary">
+            <textarea
+              value={reqSummary}
+              onChange={e => setReqSummary(e.target.value)}
+              rows={5}
+              placeholder="What is the funder looking for? Key priorities and tips for a strong application…"
+              className={`${inputCls} resize-y`}
+            />
           </Card>
 
           {/* Save button */}

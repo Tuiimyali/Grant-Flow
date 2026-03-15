@@ -114,6 +114,12 @@ export interface GrantAttachment {
   name: string
 }
 
+export interface ReviewCriterion {
+  criterion: string
+  weight: string
+  description: string
+}
+
 /* ── grants table (detail fields not in view) ───────────────── */
 export interface GrantDetail {
   id: string
@@ -121,6 +127,8 @@ export interface GrantDetail {
   attachments: GrantAttachment[] | null
   description: string | null
   source_url: string | null
+  review_criteria: ReviewCriterion[] | null
+  requirements_summary: string | null
 }
 
 /* ── grant_matches table ────────────────────────────────────── */
@@ -182,6 +190,12 @@ export interface GrantsFullRow {
 
   // Match (from grant_matches)
   fit_score: number | null
+
+  // Extended detail fields (added columns)
+  review_criteria: ReviewCriterion[] | null
+  requirements_summary: string | null
+  source_url: string | null
+  description: string | null
 }
 
 export type PipelineStatus =

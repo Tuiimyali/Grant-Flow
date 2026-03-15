@@ -779,7 +779,12 @@ function GrantRow({
       <td className="px-4 py-3 max-w-[260px]">
         <div className="flex items-start gap-2">
           <div className="min-w-0">
-            <p className="font-medium text-slate-900 leading-snug line-clamp-1">{g.name}</p>
+            <Link
+              href={`/grants/${g.id}`}
+              className="font-medium text-slate-900 leading-snug line-clamp-1 hover:text-amber-600 hover:underline transition-colors"
+            >
+              {g.name}
+            </Link>
             {g.funder && (
               <p className="text-xs text-slate-400 truncate mt-0.5">{g.funder}</p>
             )}

@@ -51,6 +51,8 @@ interface FormData {
   status: PipelineStatus
   sections: Section[]
   attachments: Attachment[]
+  review_criteria: { criterion: string; weight: string; description: string }[]
+  requirements_summary: string
 }
 
 const EMPTY: FormData = {
@@ -60,9 +62,20 @@ const EMPTY: FormData = {
   effort_weeks: '', source_url: '',
   status: 'discovered',
   sections: [], attachments: [],
+  review_criteria: [], requirements_summary: '',
 }
 
 function uid() { return Math.random().toString(36).slice(2, 9) }
+
+/* ── Eligibility label → DB value map ──────────────────────── */
+// The AI returns short keys; map them to our display labels
+const ELIGIBILITY_MAP: Record<string, string> = {
+  tribal:     'Tribal Government',
+  '501c3':    'Nonprofit 501(c)(3)',
+  faith_based:'Faith-Based Org',
+  government: 'State Agency',
+  other:      'Other',
+}
 
 /* ── Shared primitives ──────────────────────────────────────── */
 
@@ -92,16 +105,25 @@ interface AddGrantModalProps {
 }
 
 export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModalProps) {
-  const [form, setForm]     = useState<FormData>(EMPTY)
-  const [saving, setSaving] = useState(false)
-  const [error, setError]   = useState<string | null>(null)
-  const firstInputRef       = useRef<HTMLInputElement>(null)
+  const [form, setForm]         = useState<FormData>(EMPTY)
+  const [saving, setSaving]     = useState(false)
+  const [error, setError]       = useState<string | null>(null)
+  const firstInputRef           = useRef<HTMLInputElement>(null)
+
+  // URL auto-fill state
+  const [urlInput, setUrlInput]         = useState('')
+  const [extracting, setExtracting]     = useState(false)
+  const [extractError, setExtractError] = useState<string | null>(null)
+  const [fillSuccess, setFillSuccess]   = useState(false)
 
   // Reset on open
   useEffect(() => {
     if (open) {
       setForm(EMPTY)
       setError(null)
+      setUrlInput('')
+      setExtractError(null)
+      setFillSuccess(false)
       setTimeout(() => firstInputRef.current?.focus(), 50)
     }
   }, [open])
@@ -128,6 +150,83 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
         ? form.eligibility_types.filter(e => e !== label)
         : [...form.eligibility_types, label]
     )
+  }
+
+  /* ── URL Auto-fill ──────────────────────────────────────── */
+
+  async function handleAutoFill() {
+    if (!urlInput.trim()) {
+      setExtractError('Please enter a valid URL')
+      return
+    }
+    setExtracting(true)
+    setExtractError(null)
+    setFillSuccess(false)
+
+    try {
+      const res = await fetch('/api/grant-extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: urlInput.trim() }),
+      })
+      const json = await res.json()
+
+      if (!res.ok || json.error) {
+        setExtractError(json.error ?? 'Could not extract grant details. Please fill in manually.')
+        return
+      }
+
+      const d = json.data as Record<string, unknown>
+
+      // Map eligibility_types: AI returns short keys, map to display labels
+      const rawEligibility = Array.isArray(d.eligibility_types) ? d.eligibility_types as string[] : []
+      const mappedEligibility = rawEligibility
+        .map(k => ELIGIBILITY_MAP[k] ?? k)
+        .filter(v => ELIGIBILITY_OPTIONS.includes(v))
+
+      // Map sections: AI returns { title, limit } we store { id, title, page_limit }
+      const rawSections = Array.isArray(d.sections) ? d.sections as { title: string; limit?: string }[] : []
+      const mappedSections: Section[] = rawSections.map(s => ({
+        id: uid(),
+        title: s.title ?? '',
+        page_limit: s.limit ?? '',
+      }))
+
+      // Map attachments: AI returns strings[]
+      const rawAttachments = Array.isArray(d.attachments) ? d.attachments as string[] : []
+      const mappedAttachments: Attachment[] = rawAttachments.map(name => ({ id: uid(), name }))
+
+      // Map review_criteria
+      type RawCriterion = { criterion?: string; weight?: string; description?: string }
+      const rawCriteria = Array.isArray(d.review_criteria) ? d.review_criteria as RawCriterion[] : []
+      const mappedCriteria = rawCriteria.map(c => ({
+        criterion: c.criterion ?? '',
+        weight: c.weight ?? '',
+        description: c.description ?? '',
+      }))
+
+      setForm({
+        title:               typeof d.name === 'string'        ? d.name        : '',
+        funder_name:         typeof d.funder === 'string'      ? d.funder      : '',
+        description:         typeof d.description === 'string' ? d.description : '',
+        category:            typeof d.category === 'string'    ? d.category    : '',
+        amount_min:          d.amount_low  ? String(d.amount_low)  : '',
+        amount_max:          d.amount_high ? String(d.amount_high) : '',
+        deadline:            typeof d.deadline === 'string' && d.deadline ? d.deadline : '',
+        eligibility_types:   mappedEligibility,
+        is_renewal:          d.is_renewal === true,
+        effort_weeks:        d.effort_weeks ? String(d.effort_weeks) : '',
+        source_url:          urlInput.trim(),
+        status:              'discovered',
+        sections:            mappedSections,
+        attachments:         mappedAttachments,
+        review_criteria:     mappedCriteria,
+        requirements_summary: typeof d.requirements_summary === 'string' ? d.requirements_summary : '',
+      })
+      setFillSuccess(true)
+    } finally {
+      setExtracting(false)
+    }
   }
 
   /* ── Section builder ────────────────────────────────────── */
@@ -174,7 +273,7 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
 
   /* ── Submit ─────────────────────────────────────────────── */
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!form.title.trim()) { setError('Grant name is required.'); return }
 
@@ -183,7 +282,6 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
 
     const supabase = createClient()
 
-    // Resolve organization_id from the current user's membership
     const { data: member } = await supabase
       .from('organization_members')
       .select('organization_id')
@@ -217,12 +315,21 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
         : null,
     })
 
+    // Save review_criteria + requirements_summary if we have an id
+    if (!rpcErr && newGrantId) {
+      const updatePayload: Record<string, unknown> = {}
+      if (form.review_criteria.length) updatePayload.review_criteria = form.review_criteria
+      if (form.requirements_summary.trim()) updatePayload.requirements_summary = form.requirements_summary.trim()
+      if (Object.keys(updatePayload).length) {
+        await supabase.from('grants').update(updatePayload).eq('id', newGrantId)
+      }
+    }
+
     setSaving(false)
 
     if (rpcErr) {
       setError(rpcErr.message)
     } else {
-      // Recalculate fit score for the new grant in the background
       if (newGrantId) {
         recalculateGrantScore(supabase, member.organization_id, newGrantId).catch(console.error)
       }
@@ -261,13 +368,71 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 space-y-6 max-h-[70vh] overflow-y-auto">
 
+            {/* ── URL Auto-fill ───────────────────────────── */}
+            <div className="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-3">
+              <div>
+                <p className="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-0.5">Auto-fill from URL</p>
+                <p className="text-xs text-amber-700/80">Paste a grant page URL and we'll extract the details automatically.</p>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  ref={firstInputRef}
+                  type="url"
+                  value={urlInput}
+                  onChange={e => { setUrlInput(e.target.value); setExtractError(null); setFillSuccess(false) }}
+                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAutoFill() } }}
+                  placeholder="https://grants.gov/…"
+                  className={`${inputCls} flex-1`}
+                  disabled={extracting}
+                />
+                <button
+                  type="button"
+                  onClick={handleAutoFill}
+                  disabled={extracting || !urlInput.trim()}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-white
+                    disabled:opacity-50 transition-opacity shrink-0"
+                  style={{ backgroundColor: 'var(--gold)' }}
+                >
+                  {extracting ? (
+                    <>
+                      <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                      </svg>
+                      Reading…
+                    </>
+                  ) : 'Auto-fill'}
+                </button>
+              </div>
+              {extracting && (
+                <p className="text-xs text-amber-700 flex items-center gap-1.5">
+                  <svg className="animate-spin w-3 h-3 shrink-0" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                  </svg>
+                  Reading grant details…
+                </p>
+              )}
+              {extractError && (
+                <p className="text-xs text-red-600">{extractError}</p>
+              )}
+              {fillSuccess && (
+                <p className="text-xs text-emerald-700 flex items-center gap-1">
+                  <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Fields filled in — review and edit below before saving.
+                </p>
+              )}
+              <p className="text-[11px] text-amber-600/70">Or fill in manually below.</p>
+            </div>
+
             {/* ── Basic info ─────────────────────────────── */}
             <Section label="Basic Information">
               <div className="grid grid-cols-2 gap-4">
                 <FieldGroup className="col-span-2">
                   <Label required>Grant name</Label>
                   <input
-                    ref={firstInputRef}
                     type="text"
                     value={form.title}
                     onChange={e => set('title', e.target.value)}
@@ -408,6 +573,39 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
                 </select>
               </FieldGroup>
             </Section>
+
+            {/* ── Requirements summary ───────────────────── */}
+            {(form.requirements_summary || form.review_criteria.length > 0) && (
+              <Section label="What the Funder is Looking For">
+                {form.requirements_summary && (
+                  <FieldGroup className="mb-4">
+                    <Label>Requirements summary</Label>
+                    <textarea
+                      value={form.requirements_summary}
+                      onChange={e => set('requirements_summary', e.target.value)}
+                      rows={4}
+                      className={`${inputCls} resize-y`}
+                    />
+                  </FieldGroup>
+                )}
+                {form.review_criteria.length > 0 && (
+                  <div>
+                    <Label>Review criteria</Label>
+                    <div className="mt-1 space-y-2">
+                      {form.review_criteria.map((c, i) => (
+                        <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-700">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="font-semibold">{c.criterion}</span>
+                            {c.weight && <span className="text-slate-400">{c.weight}</span>}
+                          </div>
+                          {c.description && <p className="text-slate-500 leading-relaxed">{c.description}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Section>
+            )}
 
             {/* ── Sections builder ───────────────────────── */}
             <Section label="Application Sections">
