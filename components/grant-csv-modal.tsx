@@ -231,7 +231,7 @@ function UploadStage({
   dragging:    boolean
   setDragging: (v: boolean) => void
   onDrop:      (e: React.DragEvent) => void
-  inputRef:    React.RefObject<HTMLInputElement>
+  inputRef:    React.RefObject<HTMLInputElement | null>
   onFile:      (f: File) => void
   fileError:   string | null
 }) {
