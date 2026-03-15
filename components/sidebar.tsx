@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import DeadlineAlertsBell from '@/components/deadline-alerts-bell'
 
 /* ── Nav definition ─────────────────────────────────────── */
 const NAV_ITEMS = [
@@ -172,6 +173,9 @@ export default function Sidebar() {
         style={{ borderColor: 'var(--sidebar-border)' }}
         className="px-2 py-3 border-t space-y-0.5"
       >
+        {/* Deadline alerts bell */}
+        <DeadlineAlertsBell collapsed={collapsed} />
+
         {/* Sign out */}
         <button
           onClick={handleSignOut}

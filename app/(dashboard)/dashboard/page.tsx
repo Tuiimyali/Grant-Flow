@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import PageHeader from '@/components/page-header'
 import Link from 'next/link'
+import DashboardDeadlineBanners from '@/components/dashboard-deadline-banners'
 
 /* ── Domain types ──────────────────────────────────────────── */
 type GrantRow = {
@@ -116,6 +117,7 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader title="Dashboard" subtitle="Overview of your grant activity" />
+      <DashboardDeadlineBanners />
 
       <div className="p-6 space-y-6">
         {/* ── Stat cards ─────────────────────────────────── */}

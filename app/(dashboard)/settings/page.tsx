@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/page-header'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from '@/lib/toast'
+import { useDeadlineAlerts, type NotificationPrefs } from '@/lib/contexts/deadline-alerts-context'
 
 /* ── Nav sections ────────────────────────────────────────────── */
 
@@ -51,7 +52,7 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    id: 'notifications', label: 'Notifications', soon: true,
+    id: 'notifications', label: 'Notifications',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path fillRule="evenodd" d="M4 8a6 6 0 1 1 12 0c0 1.887.454 3.665 1.257 5.234a.75.75 0 0 1-.515 1.076 32.91 32.91 0 0 1-3.256.508 3.5 3.5 0 0 1-6.972 0 32.903 32.903 0 0 1-3.256-.508.75.75 0 0 1-.515-1.076A11.448 11.448 0 0 0 4 8Zm6 7c-.655 0-1.305-.02-1.95-.057a2 2 0 0 0 3.9 0c-.645.038-1.295.057-1.95.057Z" clipRule="evenodd" />
@@ -465,6 +466,77 @@ function OrganizationSection() {
   )
 }
 
+/* ── Notifications section ───────────────────────────────────── */
+
+const THRESHOLD_OPTIONS: { value: NotificationPrefs['alertDaysThreshold']; label: string }[] = [
+  { value: 7,  label: '7 days' },
+  { value: 14, label: '14 days' },
+  { value: 30, label: '30 days' },
+  { value: 60, label: '60 days' },
+]
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${checked ? 'bg-amber-500' : 'bg-slate-200'}`}
+    >
+      <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
+    </button>
+  )
+}
+
+function NotificationsSection() {
+  const { prefs, updatePrefs } = useDeadlineAlerts()
+
+  return (
+    <SectionCard
+      title="Deadline Alerts"
+      description="Control how you're notified about upcoming grant deadlines."
+    >
+      <div className="space-y-5">
+        {/* Enable toggle */}
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-slate-700">Show deadline alerts</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Display the notification bell and dashboard banners for grants nearing their deadline.
+            </p>
+          </div>
+          <Toggle checked={prefs.alertsEnabled} onChange={v => updatePrefs({ alertsEnabled: v })} />
+        </div>
+
+        <div className="border-t border-slate-100" />
+
+        {/* Threshold */}
+        <div className={prefs.alertsEnabled ? '' : 'opacity-40 pointer-events-none'}>
+          <FieldLabel htmlFor="alert-threshold">Alert me when deadline is within</FieldLabel>
+          <select
+            id="alert-threshold"
+            value={prefs.alertDaysThreshold}
+            onChange={e => updatePrefs({ alertDaysThreshold: Number(e.target.value) as NotificationPrefs['alertDaysThreshold'] })}
+            disabled={!prefs.alertsEnabled}
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900
+              focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400"
+            style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+          >
+            {THRESHOLD_OPTIONS.map(o => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <p className="mt-1.5 text-xs text-slate-400">
+            Grants within this window appear in the sidebar bell and dashboard banners.
+            Overdue and 7-day grants always show as urgent regardless of this setting.
+          </p>
+        </div>
+      </div>
+    </SectionCard>
+  )
+}
+
 /* ── Placeholder section ─────────────────────────────────────── */
 
 const PLACEHOLDER_CONTENT: Record<string, { title: string; body: string }> = {
@@ -566,9 +638,10 @@ export default function SettingsPage() {
           style={{ backgroundColor: 'var(--surface)' }}
         >
           <div className="max-w-2xl space-y-5">
-            {active === 'account'      && <AccountSection />}
-            {active === 'organization' && <OrganizationSection />}
-            {active !== 'account' && active !== 'organization' && (
+            {active === 'account'       && <AccountSection />}
+            {active === 'organization'  && <OrganizationSection />}
+            {active === 'notifications' && <NotificationsSection />}
+            {active !== 'account' && active !== 'organization' && active !== 'notifications' && (
               <PlaceholderSection section={active} />
             )}
           </div>
