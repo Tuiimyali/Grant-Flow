@@ -7,6 +7,8 @@ import { useDrafts, type SaveStatus } from '@/lib/hooks/use-drafts'
 import { useSnippets } from '@/lib/hooks/use-snippets'
 import { SNIPPET_CATEGORIES } from '@/lib/types/database.types'
 import { formatCurrency, formatDeadline } from '@/lib/utils/formatting'
+import { exportDraftAsDocx } from '@/lib/utils/export-draft'
+import { toast } from '@/lib/toast'
 import type { GrantsFullRow, GrantSection, SnippetRow, SnippetCategory } from '@/lib/types/database.types'
 
 /* ── Constants ──────────────────────────────────────────────── */
@@ -51,6 +53,7 @@ export default function DraftsPage() {
   const [showSnippetPicker, setShowSnippetPicker] = useState(false)
   const [aiLoading,         setAiLoading]         = useState(false)
   const [showAiModal,       setShowAiModal]       = useState(false)
+  const [exportLoading,     setExportLoading]     = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -102,6 +105,29 @@ export default function DraftsPage() {
       console.error('[AI Draft] error:', err)
     } finally {
       setAiLoading(false)
+    }
+  }
+
+  const hasContent = sections.some(s => contents[s.title]?.trim())
+
+  async function handleExport() {
+    if (!selectedGrant || !hasContent) return
+    setExportLoading(true)
+    try {
+      await exportDraftAsDocx({
+        grantName: selectedGrant.name,
+        funder: selectedGrant.funder,
+        deadline: selectedGrant.deadline,
+        orgName: 'My Organization',
+        sections,
+        contents,
+      })
+      toast('Application exported successfully', 'success', 3000)
+    } catch (err) {
+      console.error('[Export] error:', err)
+      toast('Export failed', 'error')
+    } finally {
+      setExportLoading(false)
     }
   }
 
@@ -191,7 +217,41 @@ export default function DraftsPage() {
                   <p className="text-xs text-slate-400 truncate">{selectedGrant.funder}</p>
                 )}
               </div>
-              <DeadlineBadge date={selectedGrant.deadline} />
+              <div className="flex items-center gap-2 shrink-0">
+                <DeadlineBadge date={selectedGrant.deadline} />
+                <div className="relative group">
+                  <button
+                    onClick={handleExport}
+                    disabled={!hasContent || exportLoading}
+                    className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white
+                      px-2.5 py-1.5 text-xs font-medium text-slate-600
+                      hover:border-slate-400 hover:text-slate-900
+                      disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {exportLoading ? (
+                      <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10"
+                          stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" strokeWidth={1.75}>
+                        <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                    )}
+                    Export Word
+                  </button>
+                  {!hasContent && (
+                    <div className="absolute right-0 top-full mt-1.5 z-10 hidden group-hover:block
+                      w-52 rounded-lg bg-slate-800 px-3 py-2 text-[11px] text-slate-200 shadow-lg">
+                      Write at least one section before exporting
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Section tabs */}
