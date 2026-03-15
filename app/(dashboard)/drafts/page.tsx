@@ -46,9 +46,11 @@ export default function DraftsPage() {
     return filtered
   }, [grants])
 
-  const [selectedId,       setSelectedId]       = useState<string | null>(null)
-  const [selectedSection,  setSelectedSection]  = useState<string | null>(null)
+  const [selectedId,        setSelectedId]        = useState<string | null>(null)
+  const [selectedSection,   setSelectedSection]   = useState<string | null>(null)
   const [showSnippetPicker, setShowSnippetPicker] = useState(false)
+  const [aiLoading,         setAiLoading]         = useState(false)
+  const [showAiModal,       setShowAiModal]       = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -73,6 +75,33 @@ export default function DraftsPage() {
 
   const activeSection = sections.find(s => s.title === selectedSection) ?? null
   const activeContent = selectedSection ? (contents[selectedSection] ?? '') : ''
+
+  async function handleAiDraft(mode: 'generate' | 'improve') {
+    if (!activeSection || !selectedId) return
+    setShowAiModal(false)
+    setAiLoading(true)
+    try {
+      const res = await fetch('/api/draft-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          grantId: selectedId,
+          sectionTitle: activeSection.title,
+          pageLimit: activeSection.page_limit,
+          mode,
+          existingContent: activeContent,
+        }),
+      })
+      const json = await res.json() as { content?: string; error?: string }
+      if (!res.ok || !json.content) throw new Error(json.error ?? 'No content returned')
+      updateContent(activeSection.title, json.content)
+      setTimeout(() => textareaRef.current?.focus(), 0)
+    } catch (err) {
+      console.error('[AI Draft] error:', err)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   function handleInsertSnippet(snippet: SnippetRow) {
     if (!activeSection) return
@@ -250,6 +279,38 @@ export default function DraftsPage() {
                         Snippets
                       </button>
                       <button
+                        onClick={() => {
+                          if (activeContent.trim()) {
+                            setShowAiModal(true)
+                          } else {
+                            handleAiDraft('generate')
+                          }
+                        }}
+                        disabled={aiLoading}
+                        className="rounded-md border border-violet-300 bg-violet-50 px-2.5 py-1 text-[11px]
+                          font-medium text-violet-700 hover:border-violet-400 hover:bg-violet-100
+                          disabled:opacity-40 transition-colors flex items-center gap-1"
+                      >
+                        {aiLoading ? (
+                          <>
+                            <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
+                              <circle className="opacity-25" cx="12" cy="12" r="10"
+                                stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                            </svg>
+                            Generating…
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+                            </svg>
+                            AI Draft
+                          </>
+                        )}
+                      </button>
+                      <button
                         onClick={() => saveDraft(activeSection.title)}
                         disabled={saveStatus === 'saving'}
                         className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px]
@@ -267,6 +328,15 @@ export default function DraftsPage() {
                       snippets={snippets}
                       onInsert={handleInsertSnippet}
                       onClose={() => setShowSnippetPicker(false)}
+                    />
+                  )}
+
+                  {/* AI Draft mode modal */}
+                  {showAiModal && (
+                    <AiDraftModal
+                      onGenerate={() => handleAiDraft('generate')}
+                      onImprove={() => handleAiDraft('improve')}
+                      onClose={() => setShowAiModal(false)}
                     />
                   )}
                 </>
@@ -604,6 +674,74 @@ function SnippetPickerModal({
               </div>
             ))
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── AI Draft mode modal ─────────────────────────────────────── */
+
+function AiDraftModal({
+  onGenerate,
+  onImprove,
+  onClose,
+}: {
+  onGenerate: () => void
+  onImprove: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-violet-500" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
+            </svg>
+            <h2 className="text-sm font-semibold text-slate-900">AI Draft</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="px-5 py-4 space-y-3">
+          <p className="text-xs text-slate-500">This section already has content. What would you like to do?</p>
+          <button
+            onClick={onGenerate}
+            className="w-full flex items-start gap-3 rounded-xl border border-slate-200 px-4 py-3
+              hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+          >
+            <svg className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            <div>
+              <p className="text-xs font-semibold text-slate-800">Generate new draft</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Replace current content with a fresh AI-generated draft</p>
+            </div>
+          </button>
+          <button
+            onClick={onImprove}
+            className="w-full flex items-start gap-3 rounded-xl border border-slate-200 px-4 py-3
+              hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+          >
+            <svg className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" strokeWidth={1.75}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
+            </svg>
+            <div>
+              <p className="text-xs font-semibold text-slate-800">Improve existing draft</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">Rewrite current content to be more compelling and specific</p>
+            </div>
+          </button>
         </div>
       </div>
     </div>
