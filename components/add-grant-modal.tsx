@@ -102,9 +102,10 @@ interface AddGrantModalProps {
   open: boolean
   onClose: () => void
   onSuccess: () => void
+  prefill?: { title?: string; funder_name?: string; description?: string }
 }
 
-export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModalProps) {
+export default function AddGrantModal({ open, onClose, onSuccess, prefill }: AddGrantModalProps) {
   const [form, setForm]         = useState<FormData>(EMPTY)
   const [saving, setSaving]     = useState(false)
   const [error, setError]       = useState<string | null>(null)
@@ -119,7 +120,7 @@ export default function AddGrantModal({ open, onClose, onSuccess }: AddGrantModa
   // Reset on open
   useEffect(() => {
     if (open) {
-      setForm(EMPTY)
+      setForm(prefill ? { ...EMPTY, ...prefill } : EMPTY)
       setError(null)
       setUrlInput('')
       setExtractError(null)

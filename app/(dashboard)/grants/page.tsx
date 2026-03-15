@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/page-header'
 import { DeadlineBadge } from '@/components/badges'
 import AddGrantModal from '@/components/add-grant-modal'
+import AiGrantSearch from '@/components/ai-grant-search'
 import GrantCsvModal from '@/components/grant-csv-modal'
 import { useGrants } from '@/lib/hooks/use-grants'
 import { createClient } from '@/lib/supabase/client'
@@ -463,6 +464,11 @@ function GrantsPageContent() {
           secondary: true,
         }}
         action={{ label: '+ New grant', onClick: () => setShowAddModal(true) }}
+      />
+
+      <AiGrantSearch
+        grants={grants}
+        onAdded={refresh}
       />
 
       {/* Import / Export CSV bar */}
