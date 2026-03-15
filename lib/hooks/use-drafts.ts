@@ -111,10 +111,12 @@ export function useDrafts(grantId: string | null): UseDraftsResult {
       // Use whatever we got — if grants table is blocked, sections will be empty
       const det: GrantDetail = {
         id: grantId as string,
-        sections:    (detailData as GrantDetail | null)?.sections    ?? null,
-        attachments: (detailData as GrantDetail | null)?.attachments ?? null,
-        description: (detailData as GrantDetail | null)?.description ?? null,
-        source_url:  (detailData as GrantDetail | null)?.source_url  ?? null,
+        sections:             (detailData as GrantDetail | null)?.sections             ?? null,
+        attachments:          (detailData as GrantDetail | null)?.attachments          ?? null,
+        description:          (detailData as GrantDetail | null)?.description          ?? null,
+        source_url:           (detailData as GrantDetail | null)?.source_url           ?? null,
+        review_criteria:      (detailData as GrantDetail | null)?.review_criteria      ?? [],
+        requirements_summary: (detailData as GrantDetail | null)?.requirements_summary ?? null,
       }
       setDetail(det)
 
