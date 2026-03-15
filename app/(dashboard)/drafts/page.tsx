@@ -92,8 +92,10 @@ export default function DraftsPage() {
           existingContent: activeContent,
         }),
       })
-      const json = await res.json() as { content?: string; error?: string }
-      if (!res.ok || !json.content) throw new Error(json.error ?? 'No content returned')
+      const json = await res.json() as { content?: string; error?: string; detail?: string }
+      if (!res.ok || !json.content) {
+        throw new Error(`${json.error ?? 'No content returned'}${json.detail ? ` — ${json.detail}` : ''}`)
+      }
       updateContent(activeSection.title, json.content)
       setTimeout(() => textareaRef.current?.focus(), 0)
     } catch (err) {

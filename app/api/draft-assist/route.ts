@@ -6,13 +6,17 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: NextRequest) {
   try {
-    const { grantId, sectionTitle, pageLimit, mode, existingContent } = await req.json() as {
+    const body = await req.json() as {
       grantId: string
       sectionTitle: string
       pageLimit: number | null
       mode: 'generate' | 'improve'
       existingContent?: string
     }
+    const { grantId, sectionTitle, pageLimit, mode, existingContent } = body
+
+    console.log('[draft-assist] request body:', { grantId, sectionTitle, pageLimit, mode })
+    console.log('[draft-assist] ANTHROPIC_API_KEY present:', !!process.env.ANTHROPIC_API_KEY)
 
     if (!grantId || !sectionTitle) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -20,27 +24,44 @@ export async function POST(req: NextRequest) {
 
     const supabase = await createClient()
 
-    // Get org membership + profile in parallel with grant details
-    const [memberResult, grantResult] = await Promise.all([
-      supabase
-        .from('organization_members')
-        .select('organization_id')
-        .single(),
-      supabase
-        .from('grants_full')
-        .select('name, funder, funder_type, category, description, amount_low, amount_high, deadline, eligibility_types')
-        .eq('id', grantId)
-        .single(),
-    ])
+    // Step 1: org membership
+    const memberResult = await supabase
+      .from('organization_members')
+      .select('organization_id')
+      .single()
+
+    console.log('[draft-assist] organization_members result:', {
+      data: memberResult.data,
+      error: memberResult.error?.message,
+      status: memberResult.status,
+    })
+
+    // Step 2: grant from view
+    const grantResult = await supabase
+      .from('grants_full')
+      .select('name, funder, category, description, amount_low, amount_high, deadline, eligibility_types')
+      .eq('id', grantId)
+      .single()
+
+    console.log('[draft-assist] grants_full result:', {
+      data: grantResult.data,
+      error: grantResult.error?.message,
+      status: grantResult.status,
+    })
 
     const orgId = (memberResult.data as { organization_id: string } | null)?.organization_id
     const grant = grantResult.data
 
-    if (!orgId || !grant) {
-      return NextResponse.json({ error: 'Unable to load context' }, { status: 400 })
+    if (!orgId) {
+      console.error('[draft-assist] no orgId — memberResult:', memberResult)
+      return NextResponse.json({ error: 'Unable to load org context', detail: memberResult.error?.message }, { status: 400 })
+    }
+    if (!grant) {
+      console.error('[draft-assist] no grant — grantResult:', grantResult)
+      return NextResponse.json({ error: 'Unable to load grant context', detail: grantResult.error?.message }, { status: 400 })
     }
 
-    // Load org profile + snippets in parallel
+    // Step 3: org profile + snippets
     const [profileResult, snippetsResult] = await Promise.all([
       supabase
         .from('organization_profiles')
@@ -55,10 +76,20 @@ export async function POST(req: NextRequest) {
         .limit(10),
     ])
 
+    console.log('[draft-assist] organization_profiles result:', {
+      data: profileResult.data,
+      error: profileResult.error?.message,
+      status: profileResult.status,
+    })
+    console.log('[draft-assist] snippets result:', {
+      count: snippetsResult.data?.length,
+      error: snippetsResult.error?.message,
+    })
+
     const profile = profileResult.data
     const snippets = snippetsResult.data ?? []
 
-    // Build system context
+    // Build context
     const orgContext = profile ? [
       profile.mission_statement && `Mission: ${profile.mission_statement}`,
       profile.org_type          && `Organization type: ${profile.org_type}`,
@@ -71,9 +102,8 @@ export async function POST(req: NextRequest) {
 
     const grantContext = [
       `Grant: ${grant.name}`,
-      grant.funder       && `Funder: ${grant.funder}`,
-      grant.funder_type  && `Funder type: ${grant.funder_type}`,
-      grant.category     && `Category: ${grant.category}`,
+      grant.funder    && `Funder: ${grant.funder}`,
+      grant.category  && `Category: ${grant.category}`,
       grant.description  && `Description: ${grant.description}`,
       grant.amount_low   && grant.amount_high
         ? `Award amount: $${grant.amount_low.toLocaleString()}–$${grant.amount_high.toLocaleString()}`
@@ -112,6 +142,8 @@ ${snippetContext}
       ? `Write the "${sectionTitle}" section for the following grant application:\n\n${grantContext}`
       : `Improve the following "${sectionTitle}" section for this grant application. Make it more compelling, specific, and aligned with the funder's priorities. Preserve the core content and intent.\n\nGrant context:\n${grantContext}\n\nCurrent draft:\n${existingContent}`
 
+    console.log('[draft-assist] calling Anthropic API...')
+
     const message = await anthropic.messages.create({
       model: 'claude-opus-4-6',
       max_tokens: 2000,
@@ -120,12 +152,16 @@ ${snippetContext}
       messages: [{ role: 'user', content: userMessage }],
     })
 
+    console.log('[draft-assist] Anthropic response stop_reason:', message.stop_reason,
+      'content blocks:', message.content.map(b => b.type))
+
     const textBlock = message.content.find(b => b.type === 'text')
     const content = textBlock?.type === 'text' ? textBlock.text.trim() : ''
 
     return NextResponse.json({ content })
   } catch (err) {
-    console.error('[draft-assist] error:', err)
-    return NextResponse.json({ error: 'Failed to generate draft' }, { status: 500 })
+    console.error('[draft-assist] unhandled error:', err)
+    const message = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Failed to generate draft', detail: message }, { status: 500 })
   }
 }
