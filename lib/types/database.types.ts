@@ -192,6 +192,40 @@ export type PipelineStatus =
   | 'awarded'
   | 'declined'
 
+/* ── snippets table ─────────────────────────────────────────── */
+export type SnippetCategory =
+  | 'Mission & Vision'
+  | 'Community Description'
+  | 'Organization Background'
+  | 'Project Team'
+  | 'Budget Justification'
+  | 'Data & Outcomes'
+  | 'Letters of Support'
+  | 'General'
+
+export const SNIPPET_CATEGORIES: SnippetCategory[] = [
+  'Mission & Vision',
+  'Community Description',
+  'Organization Background',
+  'Project Team',
+  'Budget Justification',
+  'Data & Outcomes',
+  'Letters of Support',
+  'General',
+]
+
+export interface SnippetRow {
+  id: string
+  organization_id: string
+  title: string
+  category: SnippetCategory
+  content: string
+  word_count: number
+  times_used: number
+  created_at: string
+  updated_at: string
+}
+
 /* ── Database shape (for typed Supabase client) ─────────────── */
 export interface Database {
   public: {

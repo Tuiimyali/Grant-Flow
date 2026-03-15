@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { DeadlineBadge } from '@/components/badges'
 import { useGrants } from '@/lib/hooks/use-grants'
 import { useDrafts, type SaveStatus } from '@/lib/hooks/use-drafts'
+import { useSnippets } from '@/lib/hooks/use-snippets'
+import { SNIPPET_CATEGORIES } from '@/lib/types/database.types'
 import { formatCurrency, formatDeadline } from '@/lib/utils/formatting'
-import type { GrantsFullRow, GrantSection } from '@/lib/types/database.types'
+import type { GrantsFullRow, GrantSection, SnippetRow, SnippetCategory } from '@/lib/types/database.types'
 
 /* ── Constants ──────────────────────────────────────────────── */
 
@@ -28,6 +30,7 @@ function pageEstimate(words: number, pageLimit: number | null): string | null {
 
 export default function DraftsPage() {
   const { grants, loading: grantsLoading } = useGrants()
+  const { snippets, incrementUsed } = useSnippets()
 
   const workingGrants = useMemo(() => {
     console.log('[drafts] all grants:', grants.map(g => ({ id: g.id, name: g.name, status: g.pipeline_status })))
@@ -43,8 +46,11 @@ export default function DraftsPage() {
     return filtered
   }, [grants])
 
-  const [selectedId,      setSelectedId]      = useState<string | null>(null)
-  const [selectedSection, setSelectedSection] = useState<string | null>(null)
+  const [selectedId,       setSelectedId]       = useState<string | null>(null)
+  const [selectedSection,  setSelectedSection]  = useState<string | null>(null)
+  const [showSnippetPicker, setShowSnippetPicker] = useState(false)
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const selectedGrant = workingGrants.find(g => g.id === selectedId) ?? null
 
@@ -67,6 +73,25 @@ export default function DraftsPage() {
 
   const activeSection = sections.find(s => s.title === selectedSection) ?? null
   const activeContent = selectedSection ? (contents[selectedSection] ?? '') : ''
+
+  function handleInsertSnippet(snippet: SnippetRow) {
+    if (!activeSection) return
+    const textarea = textareaRef.current
+    const start = textarea?.selectionStart ?? activeContent.length
+    const end   = textarea?.selectionEnd   ?? activeContent.length
+    const newContent =
+      activeContent.substring(0, start) +
+      snippet.content +
+      activeContent.substring(end)
+    updateContent(activeSection.title, newContent)
+    const newCursor = start + snippet.content.length
+    setTimeout(() => {
+      textarea?.focus()
+      textarea?.setSelectionRange(newCursor, newCursor)
+    }, 0)
+    incrementUsed(snippet.id)
+    setShowSnippetPicker(false)
+  }
 
   console.log('[drafts] render state:', {
     selectedId,
@@ -179,6 +204,7 @@ export default function DraftsPage() {
               ) : !activeSection ? null : (
                 <>
                   <textarea
+                    ref={textareaRef}
                     key={`${selectedId}__${selectedSection}`}
                     value={activeContent}
                     onChange={e => updateContent(activeSection.title, e.target.value)}
@@ -208,6 +234,22 @@ export default function DraftsPage() {
                     <div className="flex items-center gap-3">
                       <SaveIndicator status={saveStatus} />
                       <button
+                        onClick={() => setShowSnippetPicker(true)}
+                        className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px]
+                          font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900
+                          transition-colors flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10
+                              A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385
+                              A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10
+                              A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                        </svg>
+                        Snippets
+                      </button>
+                      <button
                         onClick={() => saveDraft(activeSection.title)}
                         disabled={saveStatus === 'saving'}
                         className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px]
@@ -218,6 +260,15 @@ export default function DraftsPage() {
                       </button>
                     </div>
                   </div>
+
+                  {/* Snippet picker modal */}
+                  {showSnippetPicker && (
+                    <SnippetPickerModal
+                      snippets={snippets}
+                      onInsert={handleInsertSnippet}
+                      onClose={() => setShowSnippetPicker(false)}
+                    />
+                  )}
                 </>
               )}
             </div>
@@ -426,6 +477,134 @@ function EmptyEditor() {
         <p className="text-xs text-slate-400 mt-1.5 leading-relaxed max-w-xs">
           Open the Pipeline, move a grant to <span className="font-medium text-violet-500">Writing</span> status, then select it here to begin.
         </p>
+      </div>
+    </div>
+  )
+}
+
+/* ── Snippet picker modal ────────────────────────────────────── */
+
+const CATEGORY_COLORS: Record<SnippetCategory, string> = {
+  'Mission & Vision':        'bg-blue-500/10   text-blue-600   border-blue-500/20',
+  'Community Description':   'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  'Organization Background': 'bg-amber-500/10  text-amber-600  border-amber-500/20',
+  'Project Team':            'bg-violet-500/10 text-violet-600 border-violet-500/20',
+  'Budget Justification':    'bg-orange-500/10 text-orange-600 border-orange-500/20',
+  'Data & Outcomes':         'bg-cyan-500/10   text-cyan-600   border-cyan-500/20',
+  'Letters of Support':      'bg-rose-500/10   text-rose-500   border-rose-500/20',
+  'General':                 'bg-slate-100     text-slate-600  border-slate-200',
+}
+
+function SnippetPickerModal({
+  snippets,
+  onInsert,
+  onClose,
+}: {
+  snippets: SnippetRow[]
+  onInsert: (snippet: SnippetRow) => void
+  onClose: () => void
+}) {
+  const [search, setSearch] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  const filtered = useMemo(() => {
+    if (!search) return snippets
+    const q = search.toLowerCase()
+    return snippets.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.content.toLowerCase().includes(q),
+    )
+  }, [snippets, search])
+
+  const grouped = useMemo(() => {
+    const map: Partial<Record<SnippetCategory, SnippetRow[]>> = {}
+    for (const s of filtered) {
+      if (!map[s.category]) map[s.category] = []
+      map[s.category]!.push(s)
+    }
+    // Return in canonical category order
+    return SNIPPET_CATEGORIES
+      .filter(c => map[c]?.length)
+      .map(c => ({ category: c, items: map[c]! }))
+  }, [filtered])
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col max-h-[75vh]">
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0">
+          <h2 className="text-sm font-semibold text-slate-900">Insert Snippet</h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Search */}
+        <div className="px-4 py-3 border-b border-slate-100 shrink-0">
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
+            </svg>
+            <input
+              ref={inputRef}
+              type="search"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search snippets…"
+              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-slate-300
+                focus:outline-none focus:ring-2 focus:border-transparent"
+              style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+            />
+          </div>
+        </div>
+
+        {/* List */}
+        <div className="flex-1 overflow-y-auto">
+          {grouped.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center px-4">
+              <p className="text-sm text-slate-500">No snippets found</p>
+              <p className="text-xs text-slate-400 mt-1">Try a different search term</p>
+            </div>
+          ) : (
+            grouped.map(({ category, items }) => (
+              <div key={category}>
+                <div className="px-4 pt-3 pb-1">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    {category}
+                  </p>
+                </div>
+                {items.map(s => (
+                  <button
+                    key={s.id}
+                    onClick={() => onInsert(s)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-xs font-semibold text-slate-800">{s.title}</p>
+                      <span className={`inline-flex rounded-full border px-1.5 py-0 text-[10px] font-medium
+                        ${CATEGORY_COLORS[s.category]}`}>
+                        {s.word_count}w
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                      {s.content.slice(0, 120)}{s.content.length > 120 ? '…' : ''}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   )
