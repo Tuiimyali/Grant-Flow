@@ -6,10 +6,12 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/page-header'
 import { DeadlineBadge } from '@/components/badges'
 import AddGrantModal from '@/components/add-grant-modal'
+import GrantCsvModal from '@/components/grant-csv-modal'
 import { useGrants } from '@/lib/hooks/use-grants'
 import { createClient } from '@/lib/supabase/client'
 import { calculateFit } from '@/lib/scoring/calculate-fit'
 import { toast } from '@/lib/toast'
+import { exportGrantsToCsv } from '@/lib/utils/csv-grants'
 import { formatCurrency, daysUntil } from '@/lib/utils/formatting'
 import type { GrantsFullRow, PipelineStatus, OrganizationProfile } from '@/lib/types/database.types'
 
@@ -289,6 +291,7 @@ function GrantsPageContent() {
 
   const [showFilters,     setShowFilters]     = useState(false)
   const [showAddModal,    setShowAddModal]    = useState(false)
+  const [showCsvModal,    setShowCsvModal]    = useState(false)
   const [recalculating,   setRecalculating]   = useState(false)
 
   const { grants, loading, error, updateStatus, refresh } = useGrants()
@@ -443,6 +446,13 @@ function GrantsPageContent() {
         onSuccess={refresh}
       />
 
+      {showCsvModal && (
+        <GrantCsvModal
+          onClose={() => setShowCsvModal(false)}
+          onSuccess={refresh}
+        />
+      )}
+
       <PageHeader
         title="Grant Discovery"
         subtitle={subtitle}
@@ -454,6 +464,40 @@ function GrantsPageContent() {
         }}
         action={{ label: '+ New grant', onClick: () => setShowAddModal(true) }}
       />
+
+      {/* Import / Export CSV bar */}
+      <div className="flex items-center justify-end gap-2 px-6 py-2 border-b border-slate-100 bg-slate-50/50">
+        <button
+          type="button"
+          onClick={() => exportGrantsToCsv(filtered)}
+          disabled={filtered.length === 0}
+          className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white
+            px-3 py-1.5 text-xs font-medium text-slate-600
+            hover:border-slate-400 hover:text-slate-900
+            disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Export CSV
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowCsvModal(true)}
+          className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white
+            px-3 py-1.5 text-xs font-medium text-slate-600
+            hover:border-slate-400 hover:text-slate-900 transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+            stroke="currentColor" strokeWidth={1.75}>
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
+          </svg>
+          Import CSV
+        </button>
+      </div>
 
       {/* ── Primary filter bar ─────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-3 px-6 py-3.5 border-b border-slate-200 bg-white">
