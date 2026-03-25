@@ -1,48 +1,137 @@
 @import "tailwindcss";
 
-/* ── App palette ─────────────────────────────────────────── */
+/* ── Design tokens ────────────────────────────────────────── */
 :root {
-  /* Sidebar */
-  --sidebar-bg:        #0d1825;
-  --sidebar-border:    #1c2d40;
-  --sidebar-item-hover: rgba(255,255,255,0.05);
+  /* Backgrounds */
+  --bg:                #0C0C0E;
+  --surface:           #141416;
+  --surface-2:         #1A1A1E;
+  --surface-3:         #1F1F24;
+
+  /* Borders */
+  --border:            #222228;
+  --border-2:          #2C2C34;
+
+  /* Text */
+  --text-primary:      #E8E6E1;
+  --text-secondary:    #8A8A8F;
+  --text-dim:          #5A5A60;
 
   /* Gold accent */
-  --gold:              #d4a843;
-  --gold-bg:           rgba(212,168,67,0.10);
-  --gold-border:       rgba(212,168,67,0.25);
+  --gold:              #C7A94E;
+  --gold-muted:        #9A7D3A;
+  --gold-bg:           rgba(199,169,78,0.10);
+  --gold-border:       rgba(199,169,78,0.22);
 
-  /* Content surface */
-  --surface:           #f1f5f9;
-  --surface-border:    #e2e8f0;
+  /* Semantic colours */
+  --success:           #4A9E6E;
+  --success-bg:        rgba(74,158,110,0.12);
+  --success-border:    rgba(74,158,110,0.25);
+  --warning:           #D4913A;
+  --warning-bg:        rgba(212,145,58,0.12);
+  --warning-border:    rgba(212,145,58,0.25);
+  --danger:            #C45A5A;
+  --danger-bg:         rgba(196,90,90,0.12);
+  --danger-border:     rgba(196,90,90,0.25);
+  --info:              #5A8AC4;
+  --info-bg:           rgba(90,138,196,0.12);
+  --info-border:       rgba(90,138,196,0.25);
+
+  /* Sidebar */
+  --sidebar-bg:        #0E0E11;
+  --sidebar-border:    #1E1E24;
+  --sidebar-item-hover: rgba(255,255,255,0.04);
+
+  /* Aliases kept for any legacy inline references */
+  --surface-border:    var(--border);
+  --background:        var(--bg);
+  --foreground:        var(--text-primary);
 }
 
 @theme inline {
-  --color-background:     var(--background);
-  --color-foreground:     var(--foreground);
-  --font-sans:            var(--font-geist-sans);
-  --font-mono:            var(--font-geist-mono);
-
-  /* Sidebar tokens */
-  --color-sidebar:        var(--sidebar-bg);
-  --color-sidebar-border: var(--sidebar-border);
-
-  /* Gold tokens */
-  --color-gold:           var(--gold);
-
-  /* Surface tokens */
-  --color-surface:        var(--surface);
-  --color-surface-border: var(--surface-border);
+  --color-background:      var(--bg);
+  --color-foreground:      var(--text-primary);
+  --font-sans:             var(--font-dm-sans);
+  --font-display:          var(--font-cormorant);
+  --font-mono:             var(--font-geist-mono);
+  --color-sidebar:         var(--sidebar-bg);
+  --color-sidebar-border:  var(--sidebar-border);
+  --color-gold:            var(--gold);
+  --color-surface:         var(--surface);
+  --color-surface-border:  var(--border);
 }
 
 /* ── Base ─────────────────────────────────────────────────── */
-:root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-}
+html { color-scheme: dark; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans, Arial, sans-serif);
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-cormorant, 'Cormorant Garamond', Georgia, serif);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 5px; height: 5px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--border-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ── Selection ────────────────────────────────────────────── */
+::selection { background: var(--gold-bg); color: var(--gold); }
+
+/* ── Focus ring ───────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Form inputs – dark themed globally ──────────────────── */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="number"],
+input[type="date"],
+textarea,
+select {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+input::placeholder,
+textarea::placeholder { color: var(--text-dim); }
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--gold) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--gold-bg) !important;
+}
+option { background: var(--surface); color: var(--text-primary); }
+
+/* ── Micro-interaction helpers ────────────────────────────── */
+.btn-scale { transition: transform 150ms ease; }
+.btn-scale:hover:not(:disabled) { transform: scale(1.02); }
+
+/* ── Page fade-in ─────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: fadeUp 220ms ease both; }
+
+/* ── Slide-in for toasts ──────────────────────────────────── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.toast-enter { animation: slideIn 240ms ease both; }

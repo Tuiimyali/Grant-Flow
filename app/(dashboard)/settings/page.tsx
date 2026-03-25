@@ -90,21 +90,25 @@ const NAV_ITEMS: NavItem[] = [
 
 function FieldLabel({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700 mb-1.5">
+    <label htmlFor={htmlFor} className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
       {children}
     </label>
   )
 }
 
+const inputStyle = {
+  backgroundColor: 'var(--surface-2)',
+  border: '1px solid var(--border)',
+  color: 'var(--text-primary)',
+  '--tw-ring-color': 'var(--gold)',
+} as React.CSSProperties
+
 function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
-      className={`w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900
-        placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:border-transparent
-        disabled:bg-slate-50 disabled:text-slate-400
-        ${props.className ?? ''}`}
-      style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+      className={`w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-40 disabled:cursor-not-allowed ${props.className ?? ''}`}
+      style={{ ...inputStyle, ...props.style }}
     />
   )
 }
@@ -114,9 +118,8 @@ function SaveButton({ loading, label = 'Save changes' }: { loading?: boolean; la
     <button
       type="submit"
       disabled={loading}
-      className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white
-        disabled:opacity-60 transition-opacity"
-      style={{ backgroundColor: 'var(--gold)' }}
+      className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-60 transition-opacity btn-scale"
+      style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}
     >
       {loading && (
         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -133,10 +136,16 @@ function SectionCard({ title, description, children }: {
   title: string; description?: string; children: React.ReactNode
 }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      <div className="px-6 py-5 border-b border-slate-100">
-        <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-        {description && <p className="text-sm text-slate-500 mt-0.5">{description}</p>}
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
+      }}
+    >
+      <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
+        <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+        {description && <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>{description}</p>}
       </div>
       <div className="px-6 py-5">{children}</div>
     </div>
@@ -154,7 +163,6 @@ function AccountSection() {
   const [saving, setSaving]       = useState(false)
   const [savingPw, setSavingPw]   = useState(false)
 
-  /* Delete account state */
   const [deleteOpen, setDeleteOpen]       = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [deleting, setDeleting]           = useState(false)
@@ -203,10 +211,8 @@ function AccountSection() {
     }
     setDeleting(true)
     const supabase = createClient()
-    // Attempt RPC — requires a server-side function named delete_my_account
     const { error } = await supabase.rpc('delete_my_account')
     if (error) {
-      // Fallback: sign out and show message
       toast('Account deletion requested. Our team will process it shortly.', 'info', 6000)
       await supabase.auth.signOut()
       router.push('/auth/signin')
@@ -239,7 +245,7 @@ function AccountSection() {
               readOnly
               title="Email cannot be changed here"
             />
-            <p className="mt-1.5 text-xs text-slate-400">Email changes are not supported at this time.</p>
+            <p className="mt-1.5 text-xs" style={{ color: 'var(--text-dim)' }}>Email changes are not supported at this time.</p>
           </div>
           <div className="pt-1">
             <SaveButton loading={saving} />
@@ -279,23 +285,35 @@ function AccountSection() {
       </SectionCard>
 
       {/* Danger zone */}
-      <div className="rounded-xl border border-red-200 overflow-hidden">
-        <div className="px-6 py-5 border-b border-red-100 bg-red-50/50">
-          <h2 className="text-base font-semibold text-red-700">Danger zone</h2>
-          <p className="text-sm text-red-500 mt-0.5">These actions are irreversible.</p>
+      <div
+        className="rounded-xl overflow-hidden"
+        style={{
+          border: '1px solid var(--danger-border)',
+          backgroundColor: 'var(--danger-bg)',
+        }}
+      >
+        <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--danger-border)' }}>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--danger)' }}>Danger zone</h2>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--danger)', opacity: 0.7 }}>These actions are irreversible.</p>
         </div>
-        <div className="px-6 py-5 bg-white">
+        <div className="px-6 py-5" style={{ backgroundColor: 'var(--surface)' }}>
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-slate-800">Delete account</p>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Delete account</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                 Permanently delete your account and all associated data.
               </p>
             </div>
             <button
               onClick={() => setDeleteOpen(true)}
-              className="shrink-0 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold
-                text-red-600 hover:bg-red-50 transition-colors"
+              className="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition-opacity"
+              style={{
+                border: '1px solid var(--danger-border)',
+                color: 'var(--danger)',
+                backgroundColor: 'var(--danger-bg)',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.8' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
             >
               Delete account
             </button>
@@ -305,11 +323,21 @@ function AccountSection() {
 
       {/* Delete confirmation dialog */}
       {deleteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <div
+            className="rounded-2xl w-full max-w-md mx-4 p-6"
+            style={{
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+            }}
+          >
             <div className="flex items-start gap-4 mb-5">
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24"
+              <div
+                className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }}
+              >
+                <svg className="w-5 h-5" style={{ color: 'var(--danger)' }} fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
@@ -318,8 +346,8 @@ function AccountSection() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-semibold text-slate-900">Delete your account?</h3>
-                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
+                <h3 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Delete your account?</h3>
+                <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                   This will permanently delete your account, all grants, pipeline data, and drafts.
                   This cannot be undone.
                 </p>
@@ -327,17 +355,21 @@ function AccountSection() {
             </div>
 
             <div className="mb-5">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Type <span className="font-mono font-bold text-red-600">DELETE</span> to confirm
+              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                Type <span className="font-mono font-bold" style={{ color: 'var(--danger)' }}>DELETE</span> to confirm
               </label>
               <input
                 type="text"
                 value={deleteConfirm}
                 onChange={e => setDeleteConfirm(e.target.value)}
                 placeholder="DELETE"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm
-                  focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent
-                  font-mono"
+                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 font-mono"
+                style={{
+                  backgroundColor: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-primary)',
+                  '--tw-ring-color': 'var(--danger)',
+                } as React.CSSProperties}
                 autoComplete="off"
               />
             </div>
@@ -345,23 +377,29 @@ function AccountSection() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => { setDeleteOpen(false); setDeleteConfirm('') }}
-                className="rounded-lg px-4 py-2 text-sm font-semibold text-slate-600
-                  hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+                style={{
+                  backgroundColor: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleDelete}
                 disabled={deleteConfirm !== 'DELETE' || deleting}
-                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold
-                  text-white bg-red-600 hover:bg-red-700 disabled:opacity-50 transition-colors"
+                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
+                style={{ backgroundColor: 'var(--danger)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
               >
                 {deleting && (
                   <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10"
-                      stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor"
-                      d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
                   </svg>
                 )}
                 Delete account permanently
@@ -432,9 +470,9 @@ function OrganizationSection() {
     >
       {loading ? (
         <div className="space-y-3 animate-pulse">
-          <div className="h-3 bg-slate-200 rounded w-24" />
-          <div className="h-9 bg-slate-100 rounded-lg w-full" />
-          <div className="h-8 bg-slate-100 rounded-lg w-28" />
+          <div className="h-3 rounded w-24" style={{ backgroundColor: 'var(--surface-3)' }} />
+          <div className="h-9 rounded-lg w-full" style={{ backgroundColor: 'var(--surface-3)' }} />
+          <div className="h-8 rounded-lg w-28" style={{ backgroundColor: 'var(--surface-3)' }} />
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-4">
@@ -454,7 +492,10 @@ function OrganizationSection() {
               <button
                 type="button"
                 onClick={() => setOrgName(original)}
-                className="text-sm text-slate-500 hover:text-slate-700"
+                className="text-sm transition-colors"
+                style={{ color: 'var(--text-dim)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)' }}
               >
                 Cancel
               </button>
@@ -482,9 +523,13 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors ${checked ? 'bg-amber-500' : 'bg-slate-200'}`}
+      className="relative inline-flex h-5 w-9 shrink-0 rounded-full border-2 border-transparent transition-colors"
+      style={{ backgroundColor: checked ? 'var(--gold)' : 'var(--surface-3)' }}
     >
-      <span className={`pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`} />
+      <span
+        className={`pointer-events-none inline-block h-4 w-4 rounded-full shadow transform transition-transform ${checked ? 'translate-x-4' : 'translate-x-0'}`}
+        style={{ backgroundColor: checked ? '#0C0C0E' : 'var(--text-dim)' }}
+      />
     </button>
   )
 }
@@ -501,15 +546,15 @@ function NotificationsSection() {
         {/* Enable toggle */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-slate-700">Show deadline alerts</p>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Show deadline alerts</p>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
               Display the notification bell and dashboard banners for grants nearing their deadline.
             </p>
           </div>
           <Toggle checked={prefs.alertsEnabled} onChange={v => updatePrefs({ alertsEnabled: v })} />
         </div>
 
-        <div className="border-t border-slate-100" />
+        <div style={{ borderTop: '1px solid var(--border)' }} />
 
         {/* Threshold */}
         <div className={prefs.alertsEnabled ? '' : 'opacity-40 pointer-events-none'}>
@@ -519,15 +564,14 @@ function NotificationsSection() {
             value={prefs.alertDaysThreshold}
             onChange={e => updatePrefs({ alertDaysThreshold: Number(e.target.value) as NotificationPrefs['alertDaysThreshold'] })}
             disabled={!prefs.alertsEnabled}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900
-              focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400"
-            style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-40"
+            style={inputStyle}
           >
             {THRESHOLD_OPTIONS.map(o => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          <p className="mt-1.5 text-xs text-slate-400">
+          <p className="mt-1.5 text-xs" style={{ color: 'var(--text-dim)' }}>
             Grants within this window appear in the sidebar bell and dashboard banners.
             Overdue and 7-day grants always show as urgent regardless of this setting.
           </p>
@@ -579,8 +623,8 @@ function PlaceholderSection({ section }: { section: Section }) {
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-700 mb-1">Coming soon</p>
-          <p className="text-sm text-slate-500 leading-relaxed max-w-md">{content.body}</p>
+          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Coming soon</p>
+          <p className="text-sm leading-relaxed max-w-md" style={{ color: 'var(--text-dim)' }}>{content.body}</p>
         </div>
       </div>
     </SectionCard>
@@ -591,7 +635,6 @@ function PlaceholderSection({ section }: { section: Section }) {
 
 export default function SettingsPage() {
   const [active, setActive] = useState<Section>('account')
-
   const sectionRef = useRef<HTMLDivElement>(null)
 
   const handleNav = useCallback((id: Section) => {
@@ -605,25 +648,42 @@ export default function SettingsPage() {
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* ── Left nav ───────────────────────────────────────── */}
-        <nav className="w-52 shrink-0 border-r border-slate-200 bg-white px-2 py-4 space-y-0.5">
+        <nav
+          className="w-52 shrink-0 px-2 py-4 space-y-0.5"
+          style={{
+            borderRight: '1px solid var(--border)',
+            backgroundColor: 'var(--surface)',
+          }}
+        >
           {NAV_ITEMS.map(item => (
             <button
               key={item.id}
               onClick={() => handleNav(item.id)}
-              className={`w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium
-                text-left transition-colors ${
-                  active === item.id
-                    ? 'text-amber-700'
-                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-                }`}
+              className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left transition-colors"
               style={active === item.id
-                ? { backgroundColor: 'var(--gold-bg)', color: 'var(--gold)' }
-                : undefined}
+                ? { backgroundColor: 'var(--gold-bg)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }
+                : { color: 'var(--text-dim)', border: '1px solid transparent' }
+              }
+              onMouseEnter={e => {
+                if (active !== item.id) {
+                  (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+                }
+              }}
+              onMouseLeave={e => {
+                if (active !== item.id) {
+                  (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+                }
+              }}
             >
               <span className="shrink-0">{item.icon}</span>
               <span className="flex-1 truncate">{item.label}</span>
               {item.soon && (
-                <span className="text-[10px] font-semibold rounded px-1 py-0.5 bg-slate-100 text-slate-400">
+                <span
+                  className="text-[10px] font-semibold rounded px-1 py-0.5"
+                  style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-dim)' }}
+                >
                   Soon
                 </span>
               )}
@@ -635,7 +695,7 @@ export default function SettingsPage() {
         <div
           ref={sectionRef}
           className="flex-1 overflow-y-auto px-6 py-6"
-          style={{ backgroundColor: 'var(--surface)' }}
+          style={{ backgroundColor: 'var(--bg)' }}
         >
           <div className="max-w-2xl space-y-5">
             {active === 'account'       && <AccountSection />}

@@ -9,14 +9,14 @@ import type { SnippetRow, SnippetCategory } from '@/lib/types/database.types'
 /* ── Category colours ────────────────────────────────────────── */
 
 const CATEGORY_COLORS: Record<SnippetCategory, string> = {
-  'Mission & Vision':        'bg-blue-500/10   text-blue-600   border-blue-500/20',
-  'Community Description':   'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  'Organization Background': 'bg-amber-500/10  text-amber-600  border-amber-500/20',
-  'Project Team':            'bg-violet-500/10 text-violet-600 border-violet-500/20',
-  'Budget Justification':    'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  'Data & Outcomes':         'bg-cyan-500/10   text-cyan-600   border-cyan-500/20',
-  'Letters of Support':      'bg-rose-500/10   text-rose-500   border-rose-500/20',
-  'General':                 'bg-slate-100     text-slate-600  border-slate-200',
+  'Mission & Vision':        'bg-blue-500/10   text-blue-400   border-blue-500/20',
+  'Community Description':   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Organization Background': 'bg-amber-500/10  text-amber-400  border-amber-500/20',
+  'Project Team':            'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  'Budget Justification':    'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  'Data & Outcomes':         'bg-cyan-500/10   text-cyan-400   border-cyan-500/20',
+  'Letters of Support':      'bg-rose-500/10   text-rose-400   border-rose-500/20',
+  'General':                 'bg-slate-500/10  text-slate-400  border-slate-500/20',
 }
 
 function wordCount(text: string) {
@@ -28,10 +28,10 @@ function wordCount(text: string) {
 export default function SnippetsPage() {
   const { snippets, loading, createSnippet, updateSnippet, deleteSnippet } = useSnippets()
 
-  const [search,   setSearch]   = useState('')
+  const [search,    setSearch]    = useState('')
   const [catFilter, setCatFilter] = useState<SnippetCategory | 'all'>('all')
-  const [modalOpen,   setModalOpen]   = useState(false)
-  const [editTarget,  setEditTarget]  = useState<SnippetRow | null>(null)
+  const [modalOpen,  setModalOpen]  = useState(false)
+  const [editTarget, setEditTarget] = useState<SnippetRow | null>(null)
 
   function openNew() {
     setEditTarget(null)
@@ -86,11 +86,17 @@ export default function SnippetsPage() {
       />
 
       {/* ── Filter bar ──────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3 px-6 py-3.5 border-b border-slate-200 bg-white">
+      <div
+        className="flex flex-wrap items-center gap-3 px-6 py-3.5"
+        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
+      >
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+            style={{ color: 'var(--text-dim)' }}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round"
               d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
           </svg>
@@ -99,10 +105,13 @@ export default function SnippetsPage() {
             placeholder="Search snippets…"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-300 bg-white
-              text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2
-              focus:border-transparent"
-            style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+            style={{
+              backgroundColor: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+              '--tw-ring-color': 'var(--gold)',
+            } as React.CSSProperties}
           />
         </div>
 
@@ -110,9 +119,13 @@ export default function SnippetsPage() {
         <select
           value={catFilter}
           onChange={e => setCatFilter(e.target.value as SnippetCategory | 'all')}
-          className="py-2 pl-3 pr-8 text-sm rounded-lg border border-slate-300 bg-white text-slate-700
-            focus:outline-none focus:ring-2 focus:border-transparent"
-          style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+          className="py-2 pl-3 pr-8 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+          style={{
+            backgroundColor: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            '--tw-ring-color': 'var(--gold)',
+          } as React.CSSProperties}
         >
           <option value="all">All categories</option>
           {SNIPPET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -121,7 +134,10 @@ export default function SnippetsPage() {
         {(search || catFilter !== 'all') && (
           <button
             onClick={() => { setSearch(''); setCatFilter('all') }}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-xs transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)' }}
           >
             Clear
           </button>
@@ -165,28 +181,45 @@ function SnippetCard({
   const [confirming, setConfirming] = useState(false)
 
   return (
-    <div className="group relative bg-white rounded-xl border border-slate-200 p-4
-      hover:border-slate-300 hover:shadow-sm transition-all flex flex-col gap-3">
-
+    <div
+      className="group relative rounded-xl p-4 flex flex-col gap-3 transition-all"
+      style={{
+        backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
+      }}
+      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)' }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
+    >
       {/* Delete confirmation overlay */}
       {confirming && (
-        <div className="absolute inset-0 z-10 bg-white rounded-xl border border-red-200
-          flex flex-col items-center justify-center gap-3 p-5">
-          <p className="text-sm font-medium text-slate-700 text-center">
+        <div
+          className="absolute inset-0 z-10 rounded-xl flex flex-col items-center justify-center gap-3 p-5"
+          style={{
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--danger-border)',
+          }}
+        >
+          <p className="text-sm font-medium text-center" style={{ color: 'var(--text-primary)' }}>
             Delete &ldquo;{s.title}&rdquo;?
           </p>
           <div className="flex gap-2">
             <button
               onClick={() => setConfirming(false)}
-              className="px-3 py-1.5 text-xs rounded-lg border border-slate-300
-                text-slate-600 hover:border-slate-400 transition-colors"
+              className="px-3 py-1.5 text-xs rounded-lg transition-colors"
+              style={{
+                backgroundColor: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+              }}
             >
               Cancel
             </button>
             <button
               onClick={onDelete}
-              className="px-3 py-1.5 text-xs rounded-lg bg-red-500 text-white
-                hover:bg-red-600 transition-colors"
+              className="px-3 py-1.5 text-xs rounded-lg text-white transition-opacity"
+              style={{ backgroundColor: 'var(--danger)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
             >
               Delete
             </button>
@@ -203,8 +236,16 @@ function SnippetCard({
         <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <button
             onClick={onEdit}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700
-              hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
             title="Edit snippet"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
@@ -216,8 +257,16 @@ function SnippetCard({
           </button>
           <button
             onClick={() => setConfirming(true)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-500
-              hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--danger)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--danger-bg)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
             title="Delete snippet"
           >
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
@@ -237,15 +286,18 @@ function SnippetCard({
       </div>
 
       {/* Title */}
-      <h3 className="text-sm font-semibold text-slate-900 leading-snug">{s.title}</h3>
+      <h3 className="text-sm font-semibold leading-snug" style={{ color: 'var(--text-primary)' }}>{s.title}</h3>
 
       {/* Preview */}
-      <p className="text-xs text-slate-500 leading-relaxed line-clamp-3 flex-1">
+      <p className="text-xs leading-relaxed line-clamp-3 flex-1" style={{ color: 'var(--text-dim)' }}>
         {s.content.slice(0, 160)}{s.content.length > 160 ? '…' : ''}
       </p>
 
       {/* Footer */}
-      <div className="flex items-center gap-3 text-[11px] text-slate-400 pt-1 border-t border-slate-100">
+      <div
+        className="flex items-center gap-3 text-[11px] pt-1"
+        style={{ borderTop: '1px solid var(--border)', color: 'var(--text-dim)' }}
+      >
         <span>{s.word_count} words</span>
         {s.times_used > 0 && <span>Used {s.times_used}×</span>}
       </div>
@@ -264,10 +316,10 @@ function SnippetModal({
   onSave: (data: { title: string; category: SnippetCategory; content: string }) => Promise<void>
   onClose: () => void
 }) {
-  const [title,    setTitle]   = useState(initial?.title    ?? '')
+  const [title,    setTitle]    = useState(initial?.title    ?? '')
   const [category, setCategory] = useState<SnippetCategory>(initial?.category ?? 'General')
-  const [content,  setContent] = useState(initial?.content  ?? '')
-  const [saving,   setSaving]  = useState(false)
+  const [content,  setContent]  = useState(initial?.content  ?? '')
+  const [saving,   setSaving]   = useState(false)
 
   const wc = wordCount(content)
   const titleRef = useRef<HTMLInputElement>(null)
@@ -282,21 +334,42 @@ function SnippetModal({
     setSaving(false)
   }
 
+  const inputStyle = {
+    backgroundColor: 'var(--surface-2)',
+    border: '1px solid var(--border)',
+    color: 'var(--text-primary)',
+    '--tw-ring-color': 'var(--gold)',
+  } as React.CSSProperties
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div
+        className="rounded-2xl w-full max-w-xl flex flex-col"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
             {initial ? 'Edit Snippet' : 'New Snippet'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700
-              hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
@@ -306,29 +379,27 @@ function SnippetModal({
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-6">
           {/* Title */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-slate-700">Title</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Title</label>
             <input
               ref={titleRef}
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="e.g. Organization Mission Statement"
-              className="px-3 py-2 text-sm rounded-lg border border-slate-300 text-slate-900
-                focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+              className="px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+              style={inputStyle}
               required
             />
           </div>
 
           {/* Category */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-medium text-slate-700">Category</label>
+            <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Category</label>
             <select
               value={category}
               onChange={e => setCategory(e.target.value as SnippetCategory)}
-              className="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white
-                text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+              className="px-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+              style={inputStyle}
             >
               {SNIPPET_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -337,18 +408,16 @@ function SnippetModal({
           {/* Content */}
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-slate-700">Content</label>
-              <span className="text-[11px] text-slate-400 tabular-nums">{wc} words</span>
+              <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Content</label>
+              <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-dim)' }}>{wc} words</span>
             </div>
             <textarea
               value={content}
               onChange={e => setContent(e.target.value)}
               placeholder="Write your reusable snippet content here. Use [brackets] for placeholder text."
               rows={8}
-              className="px-3 py-2 text-sm rounded-lg border border-slate-300 text-slate-900
-                leading-relaxed resize-none focus:outline-none focus:ring-2 focus:border-transparent
-                font-mono placeholder:font-sans placeholder:text-slate-400"
-              style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+              className="px-3 py-2 text-sm rounded-lg leading-relaxed resize-none focus:outline-none focus:ring-2 focus:border-transparent font-mono placeholder:font-sans"
+              style={{ ...inputStyle, '--placeholder-color': 'var(--text-dim)' } as React.CSSProperties}
               required
             />
           </div>
@@ -358,17 +427,22 @@ function SnippetModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm rounded-lg border border-slate-300 text-slate-700
-                hover:border-slate-400 transition-colors"
+              className="px-4 py-2 text-sm rounded-lg transition-colors"
+              style={{
+                backgroundColor: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving || !title.trim() || !content.trim()}
-              className="px-4 py-2 text-sm rounded-lg font-semibold text-white
-                disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              style={{ backgroundColor: 'var(--gold)' }}
+              className="px-4 py-2 text-sm rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-opacity btn-scale"
+              style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}
             >
               {saving ? 'Saving…' : (initial ? 'Save Changes' : 'Create Snippet')}
             </button>
@@ -384,8 +458,11 @@ function SnippetModal({
 function EmptyState({ hasFilter, onNew }: { hasFilter: boolean; onNew: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-        <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24"
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}
+      >
+        <svg className="w-7 h-7" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
           stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14
@@ -393,10 +470,10 @@ function EmptyState({ hasFilter, onNew }: { hasFilter: boolean; onNew: () => voi
               A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
         </svg>
       </div>
-      <p className="text-base font-semibold text-slate-700">
+      <p className="text-base font-semibold" style={{ color: 'var(--text-secondary)' }}>
         {hasFilter ? 'No snippets match your filters' : 'No snippets yet'}
       </p>
-      <p className="mt-1 text-sm text-slate-400 max-w-xs">
+      <p className="mt-1 text-sm max-w-xs" style={{ color: 'var(--text-dim)' }}>
         {hasFilter
           ? 'Try adjusting your search or category filter.'
           : 'Create reusable content blocks to speed up your grant writing.'}
@@ -404,9 +481,8 @@ function EmptyState({ hasFilter, onNew }: { hasFilter: boolean; onNew: () => voi
       {!hasFilter && (
         <button
           onClick={onNew}
-          className="mt-5 inline-flex items-center gap-2 rounded-lg px-4 py-2
-            text-sm font-semibold text-white"
-          style={{ backgroundColor: 'var(--gold)' }}
+          className="mt-5 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold btn-scale"
+          style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}
         >
           + New Snippet
         </button>
@@ -419,15 +495,19 @@ function SnippetsSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="bg-white rounded-xl border border-slate-200 p-4 space-y-3 animate-pulse">
-          <div className="h-5 bg-slate-100 rounded-full w-28" />
-          <div className="h-4 bg-slate-200 rounded w-3/4" />
+        <div
+          key={i}
+          className="rounded-xl p-4 space-y-3 animate-pulse"
+          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+        >
+          <div className="h-5 rounded-full w-28" style={{ backgroundColor: 'var(--surface-3)' }} />
+          <div className="h-4 rounded w-3/4" style={{ backgroundColor: 'var(--surface-3)' }} />
           <div className="space-y-1.5">
-            <div className="h-3 bg-slate-100 rounded w-full" />
-            <div className="h-3 bg-slate-100 rounded w-5/6" />
-            <div className="h-3 bg-slate-100 rounded w-4/6" />
+            <div className="h-3 rounded w-full" style={{ backgroundColor: 'var(--surface-2)' }} />
+            <div className="h-3 rounded w-5/6" style={{ backgroundColor: 'var(--surface-2)' }} />
+            <div className="h-3 rounded w-4/6" style={{ backgroundColor: 'var(--surface-2)' }} />
           </div>
-          <div className="h-3 bg-slate-100 rounded w-20 mt-2" />
+          <div className="h-3 rounded w-20 mt-2" style={{ backgroundColor: 'var(--surface-2)' }} />
         </div>
       ))}
     </div>

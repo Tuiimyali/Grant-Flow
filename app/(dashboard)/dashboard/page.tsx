@@ -20,13 +20,13 @@ type GrantRow = {
 const S_ACTIVE    = ['discovered', 'researching', 'writing']
 const S_SUBMITTED = ['submitted']
 const S_AWARDED   = ['awarded']
-const S_PIPELINE  = [...S_ACTIVE, ...S_SUBMITTED]   // everything not terminal
+const S_PIPELINE  = [...S_ACTIVE, ...S_SUBMITTED]
 
 const PIPELINE_SEGMENTS = [
   { statuses: S_ACTIVE,       label: 'In Progress', color: '#3b82f6' },
-  { statuses: S_SUBMITTED,    label: 'Submitted',   color: '#d4a843' },
-  { statuses: S_AWARDED,      label: 'Awarded',     color: '#22c55e' },
-  { statuses: ['declined'],   label: 'Declined',    color: '#64748b' },
+  { statuses: S_SUBMITTED,    label: 'Submitted',   color: '#C7A94E' },
+  { statuses: S_AWARDED,      label: 'Awarded',     color: '#4A9E6E' },
+  { statuses: ['declined'],   label: 'Declined',    color: '#5A5A60' },
 ] as const
 
 /* ── Helpers ───────────────────────────────────────────────── */
@@ -138,7 +138,7 @@ export default async function DashboardPage() {
             label="Submitted"
             value={submitted.length}
             sub="awaiting decision"
-            color="#d4a843"
+            color="#C7A94E"
             icon={
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path fillRule="evenodd" d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm2 6a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm1 3a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H7Z" clipRule="evenodd" />
@@ -149,7 +149,7 @@ export default async function DashboardPage() {
             label="Awarded"
             value={fmt$(awardedTotal)}
             sub={`${awarded.length} grant${awarded.length === 1 ? '' : 's'} won`}
-            color="#22c55e"
+            color="#4A9E6E"
             icon={
               <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
                 <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
@@ -171,11 +171,17 @@ export default async function DashboardPage() {
 
         {/* ── Pipeline dollar bar ─────────────────────────── */}
         {grandTotal > 0 && (
-          <div className="bg-white rounded-xl border p-5" style={{ borderColor: 'var(--surface-border)' }}>
-            <h2 className="text-sm font-semibold text-slate-700 mb-4">Pipeline by Value</h2>
+          <div
+            className="rounded-xl p-5"
+            style={{
+              backgroundColor: 'var(--surface)',
+              border: '1px solid var(--border)',
+            }}
+          >
+            <h2 className="text-sm font-semibold mb-4" style={{ color: 'var(--text-secondary)' }}>Pipeline by Value</h2>
 
             {/* Bar */}
-            <div className="flex h-3 rounded-full overflow-hidden gap-px bg-slate-100">
+            <div className="flex h-2.5 rounded-full overflow-hidden gap-px" style={{ backgroundColor: 'var(--surface-3)' }}>
               {segmentData
                 .filter(s => s.total > 0)
                 .map(seg => (
@@ -198,9 +204,9 @@ export default async function DashboardPage() {
                     className="w-2.5 h-2.5 rounded-full shrink-0"
                     style={{ backgroundColor: seg.color }}
                   />
-                  <span className="text-xs text-slate-500">{seg.label}</span>
-                  <span className="text-xs font-semibold text-slate-800">{fmt$(seg.total)}</span>
-                  <span className="text-xs text-slate-400">({seg.count})</span>
+                  <span className="text-xs" style={{ color: 'var(--text-dim)' }}>{seg.label}</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{fmt$(seg.total)}</span>
+                  <span className="text-xs" style={{ color: 'var(--text-dim)' }}>({seg.count})</span>
                 </div>
               ))}
             </div>
@@ -208,15 +214,21 @@ export default async function DashboardPage() {
         )}
 
         {/* ── Upcoming deadlines ──────────────────────────── */}
-        <div className="bg-white rounded-xl border" style={{ borderColor: 'var(--surface-border)' }}>
-          <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--surface-border)' }}>
-            <h2 className="text-sm font-semibold text-slate-700">Upcoming Deadlines</h2>
+        <div
+          className="rounded-xl overflow-hidden"
+          style={{
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+          }}
+        >
+          <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Upcoming Deadlines</h2>
           </div>
 
           {upcoming.length === 0 ? (
-            <p className="px-5 py-8 text-sm text-slate-400 text-center">No upcoming deadlines.</p>
+            <p className="px-5 py-8 text-sm text-center" style={{ color: 'var(--text-dim)' }}>No upcoming deadlines.</p>
           ) : (
-            <ul className="divide-y" style={{ borderColor: 'var(--surface-border)' }}>
+            <ul>
               {upcoming.map(grant => {
                 const days = daysUntil(grant.deadline!)
                 const urgent  = days <= 14
@@ -225,35 +237,34 @@ export default async function DashboardPage() {
                 return (
                   <li
                     key={grant.id}
-                    className="flex items-center justify-between px-5 py-3.5 transition-colors hover:bg-slate-50"
-                    style={
-                      urgent
-                        ? {
-                            backgroundColor: 'rgba(239,68,68,0.04)',
-                            boxShadow: 'inset 3px 0 0 0 #ef4444',
-                          }
+                    className="flex items-center justify-between px-5 py-3.5"
+                    style={{
+                      borderBottom: '1px solid var(--border)',
+                      backgroundColor: urgent ? 'rgba(196,90,90,0.04)' : undefined,
+                      boxShadow: urgent
+                        ? 'inset 3px 0 0 0 var(--danger)'
                         : warning
-                        ? { boxShadow: 'inset 3px 0 0 0 #f59e0b' }
-                        : undefined
-                    }
+                        ? 'inset 3px 0 0 0 var(--warning)'
+                        : undefined,
+                    }}
                   >
                     {/* Left: name + funder */}
                     <div className="min-w-0 flex-1 mr-4">
-                      <p className="text-sm font-medium text-slate-900 truncate">{grant.name}</p>
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>{grant.name}</p>
                       {grant.funder && (
-                        <p className="text-xs text-slate-500 truncate">{grant.funder}</p>
+                        <p className="text-xs truncate" style={{ color: 'var(--text-dim)' }}>{grant.funder}</p>
                       )}
                     </div>
 
                     {/* Right: days badge + date */}
                     <div className="flex items-center gap-3 shrink-0 text-right">
                       {(grant.amount_high ?? grant.amount_low) && (
-                        <span className="text-xs text-slate-400 hidden sm:block">
+                        <span className="text-xs hidden sm:block" style={{ color: 'var(--text-dim)' }}>
                           {fmt$(grant.amount_high ?? grant.amount_low ?? 0)}
                         </span>
                       )}
                       <DeadlineBadge days={days} />
-                      <span className="text-xs text-slate-400 hidden md:block w-28 text-right">
+                      <span className="text-xs hidden md:block w-28 text-right" style={{ color: 'var(--text-dim)' }}>
                         {fmtDate(grant.deadline!)}
                       </span>
                     </div>
@@ -280,19 +291,31 @@ function StatCard({
 }) {
   return (
     <div
-      className="bg-white rounded-xl border p-5 flex items-start gap-4"
-      style={{ borderColor: 'var(--surface-border)' }}
+      className="rounded-xl p-5 flex items-start gap-4"
+      style={{
+        backgroundColor: 'var(--surface)',
+        border: '1px solid var(--border)',
+      }}
     >
       <div
         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${color}18`, color }}
+        style={{ backgroundColor: `${color}22`, color }}
       >
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p>
-        <p className="text-2xl font-bold text-slate-900 mt-0.5 leading-none">{value}</p>
-        <p className="text-xs text-slate-400 mt-1">{sub}</p>
+        <p className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>{label}</p>
+        <p
+          className="text-2xl font-bold mt-0.5 leading-none tabular-nums"
+          style={{
+            fontFamily: 'var(--font-cormorant, serif)',
+            fontSize: '28px',
+            color: 'var(--text-primary)',
+          }}
+        >
+          {value}
+        </p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>{sub}</p>
       </div>
     </div>
   )
@@ -341,10 +364,13 @@ function WelcomeOnboarding({ profileDone }: { profileDone: boolean }) {
         </svg>
       </div>
 
-      <h1 className="text-2xl font-bold text-slate-900 mb-2 text-center">
+      <h1
+        className="text-2xl font-bold mb-2 text-center"
+        style={{ fontFamily: 'var(--font-cormorant, serif)', fontSize: '32px', color: 'var(--text-primary)' }}
+      >
         Welcome to Grant Intelligence Workspace
       </h1>
-      <p className="text-sm text-slate-500 max-w-md text-center mb-10 leading-relaxed">
+      <p className="text-sm max-w-md text-center mb-10 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
         Track opportunities, measure fit, and draft applications — all in one place. Follow these steps to get started.
       </p>
 
@@ -353,25 +379,21 @@ function WelcomeOnboarding({ profileDone }: { profileDone: boolean }) {
         {steps.map((step, i) => (
           <div
             key={step.n}
-            className={`relative flex items-start gap-4 rounded-xl border p-5 transition-shadow
-              ${step.done
-                ? 'bg-emerald-50/60 border-emerald-200'
-                : 'bg-white border-slate-200 hover:shadow-sm'
-              }`}
+            className="relative flex items-start gap-4 rounded-xl p-5 transition-all"
+            style={{
+              backgroundColor: step.done ? 'var(--success-bg)' : 'var(--surface)',
+              border: `1px solid ${step.done ? 'var(--success-border)' : 'var(--border)'}`,
+            }}
           >
             {/* Step number / check */}
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold mt-0.5
-                ${step.done
-                  ? 'bg-emerald-500 text-white'
-                  : i === steps.findIndex(s => !s.done)
-                  ? 'text-white'
-                  : 'bg-slate-100 text-slate-400'
-                }`}
+              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold mt-0.5"
               style={
-                !step.done && i === steps.findIndex(s => !s.done)
-                  ? { backgroundColor: 'var(--gold)', color: '#fff' }
-                  : undefined
+                step.done
+                  ? { backgroundColor: 'var(--success)', color: '#fff' }
+                  : i === steps.findIndex(s => !s.done)
+                  ? { backgroundColor: 'var(--gold)', color: '#0C0C0E' }
+                  : { backgroundColor: 'var(--surface-3)', color: 'var(--text-dim)' }
               }
             >
               {step.done ? (
@@ -383,21 +405,27 @@ function WelcomeOnboarding({ profileDone }: { profileDone: boolean }) {
 
             {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className={`text-sm font-semibold mb-0.5 ${step.done ? 'text-emerald-800 line-through decoration-emerald-400' : 'text-slate-900'}`}>
+              <p
+                className="text-sm font-semibold mb-0.5"
+                style={{
+                  color: step.done ? 'var(--success)' : 'var(--text-primary)',
+                  textDecoration: step.done ? 'line-through' : undefined,
+                  textDecorationColor: step.done ? 'var(--success)' : undefined,
+                }}
+              >
                 {step.title}
               </p>
-              <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
+              <p className="text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>{step.desc}</p>
             </div>
 
             {/* CTA */}
             <Link
               href={step.href}
-              className={`shrink-0 self-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors
-                ${step.done
-                  ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                  : 'text-white hover:opacity-90'
-                }`}
-              style={!step.done ? { backgroundColor: 'var(--gold)' } : undefined}
+              className="shrink-0 self-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-opacity btn-scale"
+              style={step.done
+                ? { backgroundColor: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success-border)' }
+                : { backgroundColor: 'var(--gold)', color: '#0C0C0E' }
+              }
             >
               {step.cta} →
             </Link>
@@ -408,12 +436,15 @@ function WelcomeOnboarding({ profileDone }: { profileDone: boolean }) {
   )
 }
 
-/* ── Sub-components ─────────────────────────────────────────── */
+/* ── Deadline badge (local, days-only) ─────────────────────── */
 
 function DeadlineBadge({ days }: { days: number }) {
   if (days < 0) {
     return (
-      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-500">
+      <span
+        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+        style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-dim)' }}
+      >
         Overdue
       </span>
     )
@@ -423,9 +454,9 @@ function DeadlineBadge({ days }: { days: number }) {
       <span
         className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
         style={{
-          backgroundColor: 'rgba(239,68,68,0.1)',
-          color: '#ef4444',
-          boxShadow: '0 0 0 1px rgba(239,68,68,0.3)',
+          backgroundColor: 'var(--danger-bg)',
+          color: 'var(--danger)',
+          boxShadow: '0 0 0 1px var(--danger-border)',
         }}
       >
         Today
@@ -437,9 +468,9 @@ function DeadlineBadge({ days }: { days: number }) {
       <span
         className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
         style={{
-          backgroundColor: 'rgba(239,68,68,0.1)',
-          color: '#ef4444',
-          boxShadow: '0 0 0 1px rgba(239,68,68,0.3), 0 0 8px rgba(239,68,68,0.2)',
+          backgroundColor: 'var(--danger-bg)',
+          color: 'var(--danger)',
+          boxShadow: '0 0 0 1px var(--danger-border), 0 0 8px rgba(196,90,90,0.2)',
         }}
       >
         {days}d
@@ -448,13 +479,23 @@ function DeadlineBadge({ days }: { days: number }) {
   }
   if (days <= 30) {
     return (
-      <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold bg-amber-50 text-amber-700 ring-1 ring-amber-200">
+      <span
+        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+        style={{
+          backgroundColor: 'var(--warning-bg)',
+          color: 'var(--warning)',
+          boxShadow: '0 0 0 1px var(--warning-border)',
+        }}
+      >
         {days}d
       </span>
     )
   }
   return (
-    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-slate-100 text-slate-600">
+    <span
+      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+      style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-secondary)' }}
+    >
       {days}d
     </span>
   )

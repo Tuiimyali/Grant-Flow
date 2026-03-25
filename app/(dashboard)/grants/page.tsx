@@ -42,12 +42,12 @@ const SORT_OPTIONS: { value: SortKey; label: string }[] = [
 
 /* ── Eligibility tag colours ────────────────────────────────── */
 const TAG_PALETTES = [
-  'bg-sky-500/10 text-sky-500 border-sky-500/20',
-  'bg-violet-500/10 text-violet-500 border-violet-500/20',
-  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  'bg-amber-500/10 text-amber-600 border-amber-500/20',
-  'bg-rose-500/10 text-rose-500 border-rose-500/20',
-  'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+  'bg-sky-500/10 text-sky-400 border-sky-500/20',
+  'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
 ]
 
 function tagPalette(s: string) {
@@ -171,12 +171,12 @@ function MultiSelect({
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium
-          whitespace-nowrap transition-colors ${
-          active
-            ? 'border-amber-300 bg-amber-50 text-amber-700'
-            : 'border-slate-300 bg-white text-slate-700 hover:border-slate-400'
-        }`}
+        className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors"
+        style={{
+          backgroundColor: active ? 'var(--gold-bg)' : 'var(--surface-2)',
+          borderColor:     active ? 'var(--gold-border)' : 'var(--border)',
+          color:           active ? 'var(--gold)' : 'var(--text-secondary)',
+        }}
       >
         <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24"
           stroke="currentColor" strokeWidth={2}>
@@ -192,17 +192,26 @@ function MultiSelect({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-20 bg-white border border-slate-200
-          rounded-xl shadow-lg min-w-[200px] py-1.5 max-h-64 overflow-y-auto">
+        <div
+          className="absolute left-0 top-full mt-1 z-20 rounded-xl min-w-[200px] py-1.5 max-h-64 overflow-y-auto"
+          style={{
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+          }}
+        >
           {options.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-slate-400">No eligibility types loaded yet</p>
+            <p className="px-3 py-2 text-xs" style={{ color: 'var(--text-dim)' }}>No eligibility types loaded yet</p>
           ) : (
             <>
               {value.length > 0 && (
                 <button
                   type="button"
                   onClick={() => onChange([])}
-                  className="w-full px-3 py-1.5 text-xs text-left text-amber-600 hover:bg-amber-50 font-medium"
+                  className="w-full px-3 py-1.5 text-xs text-left font-medium transition-colors"
+                  style={{ color: 'var(--gold)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
                 >
                   Clear selection
                 </button>
@@ -212,18 +221,20 @@ function MultiSelect({
                   key={opt}
                   type="button"
                   onClick={() => toggle(opt)}
-                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-slate-700
-                    hover:bg-slate-50 text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-left transition-colors"
+                  style={{ color: 'var(--text-secondary)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
                 >
-                  <div className={`w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center
-                    ${value.includes(opt)
-                      ? 'border-amber-500'
-                      : 'border-slate-300'
-                    }`}
-                    style={value.includes(opt) ? { backgroundColor: 'var(--gold)', borderColor: 'var(--gold)' } : undefined}
+                  <div
+                    className="w-4 h-4 rounded border-2 shrink-0 flex items-center justify-center"
+                    style={value.includes(opt)
+                      ? { backgroundColor: 'var(--gold)', borderColor: 'var(--gold)' }
+                      : { borderColor: 'var(--border-2)' }
+                    }
                   >
                     {value.includes(opt) && (
-                      <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24"
+                      <svg className="w-2.5 h-2.5 text-black" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
@@ -244,13 +255,16 @@ function MultiSelect({
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300
-      bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+    <span
+      className="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+      style={{ backgroundColor: 'var(--gold-bg)', borderColor: 'var(--gold-border)', color: 'var(--gold)' }}
+    >
       {label}
       <button
         type="button"
         onClick={onRemove}
-        className="ml-0.5 rounded-full hover:bg-amber-200 p-0.5 transition-colors"
+        className="ml-0.5 rounded-full p-0.5 transition-colors"
+        style={{ color: 'var(--gold)' }}
         aria-label={`Remove ${label} filter`}
       >
         <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
@@ -306,7 +320,6 @@ function GrantsPageContent() {
     setRecalculating(true)
     const supabase = createClient()
 
-    // 1. Resolve org
     const { data: member } = await supabase
       .from('organization_members')
       .select('organization_id')
@@ -318,7 +331,6 @@ function GrantsPageContent() {
       return
     }
 
-    // 2. Fetch org profile
     const { data: profile, error: profileErr } = await supabase
       .from('organization_profiles')
       .select('*')
@@ -331,7 +343,6 @@ function GrantsPageContent() {
       return
     }
 
-    // 3. Fetch all grants + descriptions in parallel
     const [{ data: grants, error: grantsErr }, { data: descs }] = await Promise.all([
       supabase.from('grants_full').select('*'),
       supabase.from('grants').select('id, description'),
@@ -345,7 +356,6 @@ function GrantsPageContent() {
 
     const descMap = new Map((descs ?? []).map((d: { id: string; description: string | null }) => [d.id, d.description]))
 
-    // 4. Score each grant and upsert into grant_matches
     let scored = 0
     for (const g of grants as GrantsFullRow[]) {
       const grantForScoring = {
@@ -424,7 +434,6 @@ function GrantsPageContent() {
     setDeleting(false)
   }
 
-  // Collect unique eligibility types from all loaded grants
   const allEligTypes = useMemo(() => {
     const set = new Set<string>()
     for (const g of grants) {
@@ -433,7 +442,6 @@ function GrantsPageContent() {
     return [...set].sort()
   }, [grants])
 
-  // Filtered + sorted grants
   const filtered = useMemo(
     () => sortGrants(
       applyFilters(grants, search, statusFilter, eligFilter, deadlineFrom, deadlineTo, scoreMin, scoreMax),
@@ -445,7 +453,6 @@ function GrantsPageContent() {
 
   const potential = useMemo(() => totalPotential(filtered), [filtered])
 
-  // Count advanced active filters (not search/status/sort)
   const advancedCount =
     eligFilter.length +
     (deadlineFrom ? 1 : 0) +
@@ -456,10 +463,8 @@ function GrantsPageContent() {
   const hasAnyFilter =
     !!search || statusFilter !== 'all' || advancedCount > 0
 
-  // Auto-show filter panel if any advanced filter is active
   const showFilterPanel = showFilters || advancedCount > 0
 
-  /* Update a single URL param */
   const setParam = useCallback((key: string, value: string | null) => {
     const params = new URLSearchParams(sp.toString())
     if (!value) params.delete(key)
@@ -467,7 +472,6 @@ function GrantsPageContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false })
   }, [sp, pathname, router])
 
-  /* Clear all filters */
   const clearAll = useCallback(() => {
     router.replace(pathname, { scroll: false })
   }, [pathname, router])
@@ -520,15 +524,23 @@ function GrantsPageContent() {
       />
 
       {/* Import / Export CSV bar */}
-      <div className="flex items-center justify-end gap-2 px-6 py-2 border-b border-slate-100 bg-slate-50/50">
+      <div
+        className="flex items-center justify-end gap-2 px-6 py-2"
+        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
+      >
         <button
           type="button"
           onClick={() => exportGrantsToCsv(filtered)}
           disabled={filtered.length === 0}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white
-            px-3 py-1.5 text-xs font-medium text-slate-600
-            hover:border-slate-400 hover:text-slate-900
+          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium
             disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          style={{
+            backgroundColor: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
             stroke="currentColor" strokeWidth={1.75}>
@@ -540,9 +552,14 @@ function GrantsPageContent() {
         <button
           type="button"
           onClick={() => setShowCsvModal(true)}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white
-            px-3 py-1.5 text-xs font-medium text-slate-600
-            hover:border-slate-400 hover:text-slate-900 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+          style={{
+            backgroundColor: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+          }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
         >
           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
             stroke="currentColor" strokeWidth={1.75}>
@@ -554,11 +571,17 @@ function GrantsPageContent() {
       </div>
 
       {/* ── Primary filter bar ─────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3 px-6 py-3.5 border-b border-slate-200 bg-white">
+      <div
+        className="flex flex-wrap items-center gap-3 px-6 py-3.5"
+        style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
+      >
         {/* Search */}
         <div className="relative flex-1 min-w-[200px] max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
-            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+            style={{ color: 'var(--text-dim)' }}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+          >
             <path strokeLinecap="round" strokeLinejoin="round"
               d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
           </svg>
@@ -567,10 +590,13 @@ function GrantsPageContent() {
             placeholder="Search name, funder, category…"
             value={search}
             onChange={e => setParam('q', e.target.value || null)}
-            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-slate-300 bg-white
-              text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2
-              focus:border-transparent"
-            style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+            style={{
+              backgroundColor: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+              '--tw-ring-color': 'var(--gold)',
+            } as React.CSSProperties}
           />
         </div>
 
@@ -578,9 +604,13 @@ function GrantsPageContent() {
         <select
           value={statusFilter}
           onChange={e => setParam('status', e.target.value === 'all' ? null : e.target.value)}
-          className="py-2 pl-3 pr-8 text-sm rounded-lg border border-slate-300 bg-white text-slate-700
-            focus:outline-none focus:ring-2 focus:border-transparent"
-          style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+          className="py-2 pl-3 pr-8 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+          style={{
+            backgroundColor: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            '--tw-ring-color': 'var(--gold)',
+          } as React.CSSProperties}
         >
           <option value="all">All statuses</option>
           {PIPELINE_STATUSES.map(s => (
@@ -592,9 +622,13 @@ function GrantsPageContent() {
         <select
           value={sortKey}
           onChange={e => setParam('sort', e.target.value === 'fit_score' ? null : e.target.value)}
-          className="py-2 pl-3 pr-8 text-sm rounded-lg border border-slate-300 bg-white text-slate-700
-            focus:outline-none focus:ring-2 focus:border-transparent"
-          style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+          className="py-2 pl-3 pr-8 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+          style={{
+            backgroundColor: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            '--tw-ring-color': 'var(--gold)',
+          } as React.CSSProperties}
         >
           {SORT_OPTIONS.map(o => (
             <option key={o.value} value={o.value}>Sort: {o.label}</option>
@@ -605,14 +639,12 @@ function GrantsPageContent() {
         <button
           type="button"
           onClick={() => setShowFilters(f => !f)}
-          className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium
-            transition-colors ${
-            advancedCount > 0
-              ? 'border-amber-300 bg-amber-50 text-amber-700'
-              : showFilters
-              ? 'border-slate-400 bg-slate-100 text-slate-700'
-              : 'border-slate-300 bg-white text-slate-600 hover:border-slate-400'
-          }`}
+          className="flex items-center gap-1.5 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
+          style={{
+            backgroundColor: advancedCount > 0 ? 'var(--gold-bg)' : showFilters ? 'var(--surface-3)' : 'var(--surface-2)',
+            borderColor:     advancedCount > 0 ? 'var(--gold-border)' : 'var(--border)',
+            color:           advancedCount > 0 ? 'var(--gold)' : 'var(--text-secondary)',
+          }}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
             stroke="currentColor" strokeWidth={2}>
@@ -621,9 +653,9 @@ function GrantsPageContent() {
           </svg>
           Filters
           {advancedCount > 0 && (
-            <span className="inline-flex items-center justify-center w-4 h-4 rounded-full
-              text-[10px] font-bold text-white"
-              style={{ backgroundColor: 'var(--gold)' }}
+            <span
+              className="inline-flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold"
+              style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}
             >
               {advancedCount}
             </span>
@@ -635,7 +667,10 @@ function GrantsPageContent() {
           <button
             type="button"
             onClick={clearAll}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-xs transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)' }}
           >
             Clear all
           </button>
@@ -644,11 +679,13 @@ function GrantsPageContent() {
 
       {/* ── Advanced filter panel ───────────────────────────── */}
       {showFilterPanel && (
-        <div className="flex flex-wrap items-end gap-4 px-6 py-3 border-b border-slate-100 bg-slate-50/70">
-
+        <div
+          className="flex flex-wrap items-end gap-4 px-6 py-3"
+          style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
+        >
           {/* Eligibility multi-select */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+            <label className="text-[11px] font-medium uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
               Eligibility type
             </label>
             <MultiSelect
@@ -660,7 +697,7 @@ function GrantsPageContent() {
 
           {/* Deadline range */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+            <label className="text-[11px] font-medium uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
               Deadline
             </label>
             <div className="flex items-center gap-2">
@@ -668,20 +705,28 @@ function GrantsPageContent() {
                 type="date"
                 value={deadlineFrom}
                 onChange={e => setParam('dl_from', e.target.value || null)}
-                className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm text-slate-700
-                  focus:outline-none focus:ring-2 focus:border-transparent"
-                style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+                className="rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                style={{
+                  backgroundColor: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  '--tw-ring-color': 'var(--gold)',
+                } as React.CSSProperties}
                 title="Deadline from"
               />
-              <span className="text-slate-400 text-sm">—</span>
+              <span className="text-sm" style={{ color: 'var(--text-dim)' }}>—</span>
               <input
                 type="date"
                 value={deadlineTo}
                 min={deadlineFrom || undefined}
                 onChange={e => setParam('dl_to', e.target.value || null)}
-                className="rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm text-slate-700
-                  focus:outline-none focus:ring-2 focus:border-transparent"
-                style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+                className="rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                style={{
+                  backgroundColor: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  '--tw-ring-color': 'var(--gold)',
+                } as React.CSSProperties}
                 title="Deadline to"
               />
             </div>
@@ -689,7 +734,7 @@ function GrantsPageContent() {
 
           {/* Fit score range */}
           <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wide">
+            <label className="text-[11px] font-medium uppercase tracking-wide" style={{ color: 'var(--text-dim)' }}>
               Fit score
             </label>
             <div className="flex items-center gap-2">
@@ -700,11 +745,15 @@ function GrantsPageContent() {
                 placeholder="Min"
                 value={scoreMin ?? ''}
                 onChange={e => setParam('score_min', e.target.value || null)}
-                className="w-20 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm
-                  text-slate-700 focus:outline-none focus:ring-2 focus:border-transparent"
-                style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+                className="w-20 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                style={{
+                  backgroundColor: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  '--tw-ring-color': 'var(--gold)',
+                } as React.CSSProperties}
               />
-              <span className="text-slate-400 text-sm">—</span>
+              <span className="text-sm" style={{ color: 'var(--text-dim)' }}>—</span>
               <input
                 type="number"
                 min={0}
@@ -712,11 +761,15 @@ function GrantsPageContent() {
                 placeholder="Max"
                 value={scoreMax ?? ''}
                 onChange={e => setParam('score_max', e.target.value || null)}
-                className="w-20 rounded-lg border border-slate-300 bg-white px-2.5 py-2 text-sm
-                  text-slate-700 focus:outline-none focus:ring-2 focus:border-transparent"
-                style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+                className="w-20 rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+                style={{
+                  backgroundColor: 'var(--surface-2)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text-secondary)',
+                  '--tw-ring-color': 'var(--gold)',
+                } as React.CSSProperties}
               />
-              <span className="text-xs text-slate-400">/ 100</span>
+              <span className="text-xs" style={{ color: 'var(--text-dim)' }}>/ 100</span>
             </div>
           </div>
         </div>
@@ -724,7 +777,10 @@ function GrantsPageContent() {
 
       {/* ── Active filter chips ─────────────────────────────── */}
       {advancedCount > 0 && (
-        <div className="flex flex-wrap items-center gap-2 px-6 py-2.5 bg-white border-b border-slate-100">
+        <div
+          className="flex flex-wrap items-center gap-2 px-6 py-2.5"
+          style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
+        >
           {eligFilter.map(e => (
             <FilterChip
               key={e}
@@ -820,7 +876,6 @@ function GrantsTable({
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  // Clear selection after the grants list changes (post-delete refresh)
   useEffect(() => { setSelectedIds(new Set()) }, [grants])
 
   const allSelected   = grants.length > 0 && grants.every(g => selectedIds.has(g.id))
@@ -843,30 +898,35 @@ function GrantsTable({
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50 sticky top-0 z-10">
-            <th className="px-3 py-3 bg-slate-50 w-9">
+          <tr className="sticky top-0 z-10" style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
+            <th className="px-3 py-3 w-9" style={{ backgroundColor: 'var(--surface)' }}>
               <input
                 type="checkbox"
                 checked={allSelected}
                 ref={el => { if (el) el.indeterminate = someSelected && !allSelected }}
                 onChange={toggleAll}
-                className="w-4 h-4 rounded border-slate-300 cursor-pointer"
-                style={{ accentColor: 'var(--gold)' }}
+                className="w-4 h-4 rounded cursor-pointer"
+                style={{ accentColor: 'var(--gold)', borderColor: 'var(--border-2)' }}
               />
             </th>
             {['Grant', 'Amount', 'Deadline', 'Eligibility', 'Effort', 'Fit', 'Status'].map(h => (
-              <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide
-                text-slate-500 whitespace-nowrap bg-slate-50">
+              <th
+                key={h}
+                className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide whitespace-nowrap"
+                style={{ backgroundColor: 'var(--surface)', color: 'var(--text-dim)' }}
+              >
                 {h}
               </th>
             ))}
-            <th className="px-4 py-3 bg-slate-50 text-right">
+            <th className="px-4 py-3 text-right" style={{ backgroundColor: 'var(--surface)' }}>
               {multiSelected && (
                 <button
                   type="button"
                   onClick={() => onBulkDeleteRequest([...selectedIds])}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700
-                    px-3 py-1 text-xs font-semibold text-white transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold text-white transition-colors"
+                  style={{ backgroundColor: 'var(--danger)' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
                 >
                   <TrashIcon />
                   Delete ({selectedIds.size})
@@ -875,7 +935,7 @@ function GrantsTable({
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
+        <tbody style={{ backgroundColor: 'var(--surface)' }}>
           {grants.map(g => (
             <GrantRow
               key={g.id}
@@ -910,10 +970,25 @@ function GrantRow({
   const isUrgent = days !== null && days <= 14 && days >= 0
 
   return (
-    <tr className={`group hover:bg-slate-50/80 transition-colors
-      ${isUrgent ? 'bg-red-50/30' : ''}
-      ${checked  ? 'bg-amber-50/40' : ''}`}>
-
+    <tr
+      className="group transition-colors"
+      style={{
+        borderBottom: '1px solid var(--border)',
+        backgroundColor: checked
+          ? 'rgba(199,169,78,0.06)'
+          : isUrgent
+          ? 'rgba(196,90,90,0.04)'
+          : undefined,
+      }}
+      onMouseEnter={e => {
+        if (!checked) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+      }}
+      onMouseLeave={e => {
+        (e.currentTarget as HTMLElement).style.backgroundColor = checked
+          ? 'rgba(199,169,78,0.06)'
+          : isUrgent ? 'rgba(196,90,90,0.04)' : ''
+      }}
+    >
       {/* Checkbox + inline trash */}
       <td className="px-3 py-3">
         <div className="flex items-center gap-1.5">
@@ -922,7 +997,7 @@ function GrantRow({
             checked={checked}
             onChange={onToggle}
             onClick={e => e.stopPropagation()}
-            className="w-4 h-4 rounded border-slate-300 cursor-pointer"
+            className="w-4 h-4 rounded cursor-pointer"
             style={{ accentColor: 'var(--gold)' }}
           />
           {checked && (
@@ -930,28 +1005,42 @@ function GrantRow({
               <button
                 type="button"
                 onClick={() => setShowPopover(p => !p)}
-                className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+                className="p-1 rounded transition-colors"
+                style={{ color: 'var(--danger)' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--danger-bg)' }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
                 title="Delete grant"
               >
                 <TrashIcon />
               </button>
               {showPopover && (
-                <div className="absolute left-0 top-full mt-1.5 z-30 w-48 rounded-xl border border-slate-200
-                  bg-white shadow-lg p-3 flex flex-col gap-2">
-                  <p className="text-xs font-medium text-slate-700">Delete this grant?</p>
+                <div
+                  className="absolute left-0 top-full mt-1.5 z-30 w-48 rounded-xl p-3 flex flex-col gap-2"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    border: '1px solid var(--border)',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                  }}
+                >
+                  <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>Delete this grant?</p>
                   <div className="flex items-center gap-2 justify-end">
                     <button
                       type="button"
                       onClick={() => setShowPopover(false)}
-                      className="text-xs text-slate-500 hover:text-slate-700 transition-colors px-2 py-1"
+                      className="text-xs px-2 py-1 transition-colors"
+                      style={{ color: 'var(--text-dim)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)' }}
                     >
                       No
                     </button>
                     <button
                       type="button"
                       onClick={() => { setShowPopover(false); onDeleteConfirm(g.id) }}
-                      className="rounded-lg bg-red-600 hover:bg-red-700 px-3 py-1 text-xs font-semibold
-                        text-white transition-colors"
+                      className="rounded-lg px-3 py-1 text-xs font-semibold text-white transition-opacity"
+                      style={{ backgroundColor: 'var(--danger)' }}
+                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
                     >
                       Yes
                     </button>
@@ -969,17 +1058,19 @@ function GrantRow({
           <div className="min-w-0">
             <Link
               href={`/grants/${g.id}`}
-              className="font-medium text-slate-900 leading-snug line-clamp-1 hover:text-amber-600 hover:underline transition-colors"
+              className="font-medium leading-snug line-clamp-1 transition-colors"
+              style={{ color: 'var(--text-primary)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--gold)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
             >
               {g.name}
             </Link>
             {g.funder && (
-              <p className="text-xs text-slate-400 truncate mt-0.5">{g.funder}</p>
+              <p className="text-xs truncate mt-0.5" style={{ color: 'var(--text-dim)' }}>{g.funder}</p>
             )}
           </div>
           {g.is_renewal && (
-            <span className="shrink-0 mt-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold
-              bg-amber-500/10 text-amber-600 border border-amber-500/20">
+            <span className="shrink-0 mt-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
               Renewal
             </span>
           )}
@@ -987,7 +1078,7 @@ function GrantRow({
       </td>
 
       {/* Amount */}
-      <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-700">
+      <td className="px-4 py-3 whitespace-nowrap font-medium" style={{ color: 'var(--text-secondary)' }}>
         {formatAmountRange(g)}
       </td>
 
@@ -1008,13 +1099,15 @@ function GrantRow({
             </span>
           ))}
           {(g.eligibility_types?.length ?? 0) > 3 && (
-            <span className="inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium
-              bg-slate-100 text-slate-500 border-slate-200">
+            <span
+              className="inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium"
+              style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-dim)', borderColor: 'var(--border)' }}
+            >
               +{(g.eligibility_types?.length ?? 0) - 3}
             </span>
           )}
           {!g.eligibility_types?.length && (
-            <span className="text-slate-400 text-xs">—</span>
+            <span className="text-xs" style={{ color: 'var(--text-dim)' }}>—</span>
           )}
         </div>
       </td>
@@ -1022,15 +1115,15 @@ function GrantRow({
       {/* Effort */}
       <td className="px-4 py-3 whitespace-nowrap">
         {g.effort_weeks != null ? (
-          <span className="inline-flex items-center gap-1.5 text-xs text-slate-600">
-            <svg className="w-3.5 h-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24"
+          <span className="inline-flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <svg className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
               stroke="currentColor" strokeWidth={2}>
               <circle cx="12" cy="12" r="10" />
               <path strokeLinecap="round" d="M12 6v6l4 2" />
             </svg>
             {g.effort_weeks}w
           </span>
-        ) : <span className="text-slate-400 text-xs">—</span>}
+        ) : <span className="text-xs" style={{ color: 'var(--text-dim)' }}>—</span>}
       </td>
 
       {/* Fit score */}
@@ -1043,9 +1136,13 @@ function GrantRow({
         <select
           value={g.pipeline_status}
           onChange={e => onStatusChange(g.id, e.target.value)}
-          className="text-xs rounded-md border border-slate-300 bg-white px-2 py-1.5 text-slate-700
-            focus:outline-none focus:ring-1 focus:border-transparent cursor-pointer"
-          style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+          className="text-xs rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:border-transparent cursor-pointer"
+          style={{
+            backgroundColor: 'var(--surface-2)',
+            border: '1px solid var(--border)',
+            color: 'var(--text-secondary)',
+            '--tw-ring-color': 'var(--gold)',
+          } as React.CSSProperties}
         >
           {PIPELINE_STATUSES.map(s => (
             <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -1058,8 +1155,19 @@ function GrantRow({
         <div className="opacity-0 group-hover:opacity-100 transition-opacity">
           <Link
             href={`/grants/${g.id}`}
-            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600
-              hover:border-slate-400 hover:text-slate-900 transition-colors"
+            className="text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+            style={{
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+            }}
           >
             View
           </Link>
@@ -1072,12 +1180,12 @@ function GrantRow({
 /* ── Compact fit badge ──────────────────────────────────────── */
 
 function CompactFitBadge({ score }: { score: number | null | undefined }) {
-  if (score == null) return <span className="text-slate-400 text-xs">—</span>
+  if (score == null) return <span className="text-xs" style={{ color: 'var(--text-dim)' }}>—</span>
   const cls =
-    score >= 90 ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
-    score >= 80 ? 'bg-amber-500/10   text-amber-600   border-amber-500/20'   :
-    score >= 70 ? 'bg-orange-500/10  text-orange-600  border-orange-500/20'  :
-                  'bg-slate-100      text-slate-500    border-slate-200'
+    score >= 90 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+    score >= 80 ? 'bg-amber-500/10   text-amber-400   border-amber-500/20'   :
+    score >= 70 ? 'bg-orange-500/10  text-orange-400  border-orange-500/20'  :
+                  'bg-slate-500/10   text-slate-400   border-slate-500/20'
   return (
     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums ${cls}`}>
       {score}%
@@ -1104,17 +1212,30 @@ function ConfirmDialog({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-        <h2 className="text-base font-semibold text-slate-900 mb-2">{title}</h2>
-        <p className="text-sm text-slate-500 leading-relaxed mb-5">{message}</p>
+      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div
+        className="rounded-2xl max-w-md w-full p-6"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
+        <h2 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+        <p className="text-sm leading-relaxed mb-5" style={{ color: 'var(--text-secondary)' }}>{message}</p>
         <div className="flex justify-end gap-2">
           <button
             type="button"
             onClick={onCancel}
             disabled={disabled}
-            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium
-              text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            className="rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors"
+            style={{
+              backgroundColor: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
           >
             Cancel
           </button>
@@ -1122,8 +1243,10 @@ function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={disabled}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white
-              hover:bg-red-700 disabled:opacity-50 transition-colors"
+            className="rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
+            style={{ backgroundColor: 'var(--danger)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
           >
             {confirmLabel}
           </button>
@@ -1138,8 +1261,11 @@ function ConfirmDialog({
 function EmptyState({ hasFilters, onAdd }: { hasFilters: boolean; onAdd?: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center py-24 px-8 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-        <svg className="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24"
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
+        style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}
+      >
+        <svg className="w-7 h-7" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
           stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5
@@ -1148,10 +1274,10 @@ function EmptyState({ hasFilters, onAdd }: { hasFilters: boolean; onAdd?: () => 
               c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
         </svg>
       </div>
-      <p className="text-base font-semibold text-slate-700">
+      <p className="text-base font-semibold" style={{ color: 'var(--text-secondary)' }}>
         {hasFilters ? 'No grants match your filters' : 'Add your first grant opportunity'}
       </p>
-      <p className="mt-1 text-sm text-slate-400 max-w-xs">
+      <p className="mt-1 text-sm max-w-xs" style={{ color: 'var(--text-dim)' }}>
         {hasFilters
           ? 'Try adjusting your search or filters.'
           : 'Track deadlines, measure fit, and manage applications in one place.'}
@@ -1159,8 +1285,8 @@ function EmptyState({ hasFilters, onAdd }: { hasFilters: boolean; onAdd?: () => 
       {!hasFilters && onAdd && (
         <button
           onClick={onAdd}
-          className="mt-5 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white"
-          style={{ backgroundColor: 'var(--gold)' }}
+          className="mt-5 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold btn-scale"
+          style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}
         >
           + Add grant
         </button>
@@ -1174,33 +1300,34 @@ function LoadingSkeleton() {
     <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
+          <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
             <th className="px-3 py-3 w-9" />
             {['Grant', 'Amount', 'Deadline', 'Eligibility', 'Effort', 'Fit', 'Status', ''].map(h => (
-              <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide"
+                style={{ color: 'var(--text-dim)' }}>
                 {h}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody>
           {Array.from({ length: 6 }).map((_, i) => (
-            <tr key={i} className="bg-white">
+            <tr key={i} style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
               <td className="px-3 py-3 w-9" />
               <td className="px-4 py-3">
-                <div className="h-4 bg-slate-200 rounded animate-pulse w-40 mb-1.5" />
-                <div className="h-3 bg-slate-100 rounded animate-pulse w-28" />
+                <div className="h-4 rounded animate-pulse w-40 mb-1.5" style={{ backgroundColor: 'var(--surface-3)' }} />
+                <div className="h-3 rounded animate-pulse w-28" style={{ backgroundColor: 'var(--surface-2)' }} />
               </td>
               {Array.from({ length: 5 }).map((_, j) => (
                 <td key={j} className="px-4 py-3">
-                  <div className="h-5 bg-slate-100 rounded-full animate-pulse w-16" />
+                  <div className="h-5 rounded-full animate-pulse w-16" style={{ backgroundColor: 'var(--surface-3)' }} />
                 </td>
               ))}
               <td className="px-4 py-3">
-                <div className="h-7 bg-slate-100 rounded-lg animate-pulse w-28" />
+                <div className="h-7 rounded-lg animate-pulse w-28" style={{ backgroundColor: 'var(--surface-3)' }} />
               </td>
               <td className="px-4 py-3">
-                <div className="h-7 bg-slate-100 rounded-lg animate-pulse w-12" />
+                <div className="h-7 rounded-lg animate-pulse w-12" style={{ backgroundColor: 'var(--surface-3)' }} />
               </td>
             </tr>
           ))}
@@ -1212,7 +1339,14 @@ function LoadingSkeleton() {
 
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
-    <div className="flex items-center gap-3 m-6 p-4 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700">
+    <div
+      className="flex items-center gap-3 m-6 p-4 rounded-xl text-sm"
+      style={{
+        backgroundColor: 'var(--danger-bg)',
+        border: '1px solid var(--danger-border)',
+        color: 'var(--danger)',
+      }}
+    >
       <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
         <path fillRule="evenodd" clipRule="evenodd"
           d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5
@@ -1222,8 +1356,10 @@ function ErrorState({ message, onRetry }: { message: string; onRetry?: () => voi
       {onRetry && (
         <button
           onClick={onRetry}
-          className="ml-auto shrink-0 rounded-md px-3 py-1 text-xs font-semibold
-            bg-red-100 hover:bg-red-200 text-red-700 transition-colors"
+          className="ml-auto shrink-0 rounded-md px-3 py-1 text-xs font-semibold transition-opacity"
+          style={{ backgroundColor: 'var(--danger-border)', color: 'var(--danger)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.8' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
         >
           Retry
         </button>

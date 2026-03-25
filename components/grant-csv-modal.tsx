@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   CSV_COLUMNS,
@@ -33,9 +33,9 @@ export default function GrantCsvModal({
   onClose:   () => void
   onSuccess: () => void
 }) {
-  const [stage,    setStage]    = useState<Stage>('upload')
-  const [file,     setFile]     = useState<File | null>(null)
-  const [dragging, setDragging] = useState(false)
+  const [stage,     setStage]     = useState<Stage>('upload')
+  const [file,      setFile]      = useState<File | null>(null)
+  const [dragging,  setDragging]  = useState(false)
   const [fileError, setFileError] = useState<string | null>(null)
 
   const [headers,  setHeaders]  = useState<string[]>([])
@@ -47,72 +47,52 @@ export default function GrantCsvModal({
 
   const inputRef = useRef<HTMLInputElement>(null)
 
-  /* ── File handling ──────────────────────────────────────────── */
-
   async function handleFile(f: File) {
     setFileError(null)
     if (!f.name.endsWith('.csv') && f.type !== 'text/csv') {
-      setFileError('Please upload a .csv file')
-      return
+      setFileError('Please upload a .csv file'); return
     }
     setFile(f)
-
-    // Quick header peek with PapaParse to populate mapping
-    const text = await f.text()
+    const text      = await f.text()
     const firstLine = text.split('\n')[0] ?? ''
-    const hdrs = firstLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''))
+    const hdrs      = firstLine.split(',').map(h => h.trim().replace(/^"|"$/g, ''))
     if (!hdrs.length || (hdrs.length === 1 && !hdrs[0])) {
-      setFileError('The CSV file is empty')
-      return
+      setFileError('The CSV file is empty'); return
     }
-    const detected = detectMapping(hdrs)
-    setHeaders(hdrs)
-    setMapping(detected)
-    setStage('mapping')
+    setHeaders(hdrs); setMapping(detectMapping(hdrs)); setStage('mapping')
   }
 
   function onDrop(e: React.DragEvent) {
-    e.preventDefault()
-    setDragging(false)
+    e.preventDefault(); setDragging(false)
     const f = e.dataTransfer.files[0]
     if (f) handleFile(f)
   }
-
-  /* ── Proceed from mapping → preview ────────────────────────── */
 
   async function handlePreview() {
     if (!file) return
     setFileError(null)
     try {
       const result = await parseCsvFile(file, mapping)
-      setParsed(result)
-      setStage('preview')
+      setParsed(result); setStage('preview')
     } catch (err) {
       setFileError(err instanceof Error ? err.message : 'Failed to parse CSV')
     }
   }
-
-  /* ── Run import ─────────────────────────────────────────────── */
 
   async function handleImport() {
     if (!parsed?.valid.length) return
     setStage('importing')
 
     const supabase = createClient()
-    const { data: member } = await supabase
-      .from('organization_members')
-      .select('organization_id')
-      .single()
+    const { data: member } = await supabase.from('organization_members').select('organization_id').single()
     const orgId = (member as { organization_id: string } | null)?.organization_id
     if (!orgId) {
       setResult({ imported: 0, failed: parsed.valid.length, errors: ['Could not resolve organization'] })
-      setStage('done')
-      return
+      setStage('done'); return
     }
 
     const rows = parsed.valid
-    setTotal(rows.length)
-    setProgress(0)
+    setTotal(rows.length); setProgress(0)
 
     let imported = 0
     const failErrors: string[] = []
@@ -120,26 +100,21 @@ export default function GrantCsvModal({
     for (let i = 0; i < rows.length; i++) {
       const row: ParsedRow = rows[i]
       const { error } = await supabase.rpc('add_grant_to_pipeline', {
-        p_organization_id:  orgId,
-        p_name:             row.name,
-        p_funder:           row.funder,
-        p_description:      row.description,
-        p_category:         row.category,
-        p_amount_low:       row.amount_low,
-        p_amount_high:      row.amount_high,
-        p_deadline:         row.deadline,
+        p_organization_id:   orgId,
+        p_name:              row.name,
+        p_funder:            row.funder,
+        p_description:       row.description,
+        p_category:          row.category,
+        p_amount_low:        row.amount_low,
+        p_amount_high:       row.amount_high,
+        p_deadline:          row.deadline,
         p_eligibility_types: row.eligibility_types,
-        p_is_renewal:       row.is_renewal,
-        p_effort_weeks:     row.effort_weeks,
-        p_source_url:       row.source_url,
-        p_initial_status:   row.initial_status,
+        p_is_renewal:        row.is_renewal,
+        p_effort_weeks:      row.effort_weeks,
+        p_source_url:        row.source_url,
+        p_initial_status:    row.initial_status,
       })
-
-      if (error) {
-        failErrors.push(`Row ${row.index} (${row.name}): ${error.message}`)
-      } else {
-        imported++
-      }
+      if (error) { failErrors.push(`Row ${row.index} (${row.name}): ${error.message}`) } else { imported++ }
       setProgress(i + 1)
     }
 
@@ -151,14 +126,20 @@ export default function GrantCsvModal({
   /* ── Render ─────────────────────────────────────────────────── */
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
+    >
+      <div
+        className="rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[90vh]"
+        style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+      >
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Import Grants from CSV</h2>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Import Grants from CSV</h2>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-dim)' }}>
               {stage === 'upload'    && 'Upload a CSV file to bulk-add grants'}
               {stage === 'mapping'   && 'Confirm which CSV columns map to grant fields'}
               {stage === 'preview'   && 'Review the data before importing'}
@@ -168,7 +149,16 @@ export default function GrantCsvModal({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+            }}
+            onMouseLeave={e => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -189,30 +179,27 @@ export default function GrantCsvModal({
 
         {/* Footer */}
         {(stage === 'mapping' || stage === 'preview') && (
-          <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between shrink-0">
+          <div className="px-6 py-4 flex items-center justify-between shrink-0" style={{ borderTop: '1px solid var(--border)' }}>
             <button
               onClick={() => stage === 'mapping' ? setStage('upload') : setStage('mapping')}
-              className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+              className="text-sm transition-colors"
+              style={{ color: 'var(--text-dim)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)' }}
             >
               ← Back
             </button>
             {stage === 'mapping' && (
-              <button
-                onClick={handlePreview}
-                className="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
-                style={{ backgroundColor: 'var(--gold)' }}
-              >
+              <button onClick={handlePreview}
+                className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors btn-scale"
+                style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}>
                 Preview data →
               </button>
             )}
             {stage === 'preview' && parsed && (
-              <button
-                onClick={handleImport}
-                disabled={parsed.valid.length === 0}
-                className="rounded-lg px-4 py-2 text-sm font-semibold text-white
-                  disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                style={{ backgroundColor: 'var(--gold)' }}
-              >
+              <button onClick={handleImport} disabled={parsed.valid.length === 0}
+                className="rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-colors btn-scale"
+                style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}>
                 Import {parsed.valid.length} grant{parsed.valid.length !== 1 ? 's' : ''} →
               </button>
             )}
@@ -243,70 +230,74 @@ function UploadStage({
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
         onClick={() => inputRef.current?.click()}
-        className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed
-          cursor-pointer py-12 transition-colors
-          ${dragging ? 'border-amber-400 bg-amber-50' : 'border-slate-300 bg-slate-50 hover:border-slate-400 hover:bg-white'}`}
+        className="flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed cursor-pointer py-12 transition-colors"
+        style={dragging
+          ? { borderColor: 'var(--gold)', backgroundColor: 'var(--gold-bg)' }
+          : { borderColor: 'var(--border)', backgroundColor: 'var(--surface-2)' }
+        }
+        onMouseEnter={e => { if (!dragging) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)' }}
+        onMouseLeave={e => { if (!dragging) (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)' }}
       >
-        <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center">
-          <svg className="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24"
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--surface-3)' }}>
+          <svg className="w-5 h-5" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
             stroke="currentColor" strokeWidth={1.75}>
             <path strokeLinecap="round" strokeLinejoin="round"
               d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
           </svg>
         </div>
         <div className="text-center">
-          <p className="text-sm font-medium text-slate-700">Drop a CSV file here, or click to browse</p>
-          <p className="text-xs text-slate-400 mt-0.5">Only .csv files are accepted</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Drop a CSV file here, or click to browse</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>Only .csv files are accepted</p>
         </div>
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".csv,text/csv"
-          className="hidden"
-          onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }}
-        />
+        <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) onFile(f) }} />
       </div>
 
       {fileError && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p className="text-xs rounded-lg px-3 py-2" style={{
+          color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)'
+        }}>
           {fileError}
         </p>
       )}
 
       {/* Template download */}
-      <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
-        <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24"
+      <div className="flex items-center gap-3 rounded-xl px-4 py-3"
+        style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+        <svg className="w-4 h-4 shrink-0" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
           stroke="currentColor" strokeWidth={1.75}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25M8.25 21h7.5M8.25 3H5.625c-.621 0-1.125.504-1.125 1.125v17.25" />
         </svg>
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-slate-700">Need a starting point?</p>
-          <p className="text-[11px] text-slate-400">Download the template with the correct column headers</p>
+          <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>Need a starting point?</p>
+          <p className="text-[11px]" style={{ color: 'var(--text-dim)' }}>Download the template with the correct column headers</p>
         </div>
         <button
           onClick={downloadCsvTemplate}
-          className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300
-            text-slate-600 hover:border-slate-400 hover:text-slate-900 transition-colors"
+          className="shrink-0 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
+          style={{ backgroundColor: 'var(--surface-3)', border: '1px solid var(--border)', color: 'var(--text-secondary)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
         >
           Download template
         </button>
       </div>
 
       {/* Column reference */}
-      <div className="rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Available columns</p>
+      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
+        <div className="px-4 py-2" style={{ backgroundColor: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+          <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>Available columns</p>
         </div>
-        <div className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1">
+        <div className="px-4 py-3 grid grid-cols-2 gap-x-4 gap-y-1" style={{ backgroundColor: 'var(--surface)' }}>
           {CSV_COLUMNS.map(col => (
             <div key={col} className="flex items-center gap-1.5">
-              <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                ['name','funder'].includes(col) ? 'bg-red-400' : 'bg-slate-300'
-              }`} />
-              <span className="text-[11px] text-slate-600 font-mono">{col}</span>
-              {['name','funder'].includes(col) && (
-                <span className="text-[10px] text-red-400">required</span>
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{
+                backgroundColor: ['name', 'funder'].includes(col) ? 'var(--danger)' : 'var(--text-dim)'
+              }} />
+              <span className="text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>{col}</span>
+              {['name', 'funder'].includes(col) && (
+                <span className="text-[10px]" style={{ color: 'var(--danger)' }}>required</span>
               )}
             </div>
           ))}
@@ -330,14 +321,21 @@ function MappingStage({
     setMapping({ ...mapping, [col]: val || null })
   }
 
+  const selectStyle: React.CSSProperties = {
+    backgroundColor: 'var(--surface-2)',
+    color: 'var(--text-primary)',
+  }
+
   return (
     <div className="px-6 py-4 space-y-4">
-      <p className="text-xs text-slate-500">
+      <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
         We auto-detected the column mapping below. Confirm or adjust before previewing.
       </p>
 
       {fileError && (
-        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <p className="text-xs rounded-lg px-3 py-2" style={{
+          color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)'
+        }}>
           {fileError}
         </p>
       )}
@@ -348,19 +346,19 @@ function MappingStage({
           return (
             <div key={col} className="flex items-center gap-3">
               <div className="w-48 shrink-0">
-                <p className="text-xs font-medium text-slate-700">
+                <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
                   {COLUMN_LABELS[col]}
-                  {isRequired && <span className="text-red-400 ml-1">*</span>}
+                  {isRequired && <span className="ml-1" style={{ color: 'var(--danger)' }}>*</span>}
                 </p>
               </div>
               <select
                 value={mapping[col] ?? ''}
                 onChange={e => set(col, e.target.value)}
-                className={`flex-1 text-xs rounded-lg border py-1.5 px-2 bg-white text-slate-700
-                  focus:outline-none focus:ring-2 focus:border-transparent ${
-                  isRequired && !mapping[col] ? 'border-red-300' : 'border-slate-300'
-                }`}
-                style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+                className="flex-1 text-xs rounded-lg py-1.5 px-2 focus:outline-none"
+                style={{
+                  ...selectStyle,
+                  border: `1px solid ${isRequired && !mapping[col] ? 'var(--danger-border)' : 'var(--border)'}`,
+                }}
               >
                 <option value="">{isRequired ? '— select column —' : '— skip —'}</option>
                 {headers.map(h => (
@@ -368,7 +366,7 @@ function MappingStage({
                 ))}
               </select>
               {mapping[col] && (
-                <svg className="w-4 h-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24"
+                <svg className="w-4 h-4 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
@@ -385,20 +383,22 @@ function MappingStage({
 
 function PreviewStage({ parsed }: { parsed: ParseResult }) {
   const previewRows = parsed.valid.slice(0, 5)
-  const hasErrors = parsed.errors.length > 0
+  const hasErrors   = parsed.errors.length > 0
 
   return (
     <div className="px-6 py-4 space-y-4">
       {/* Summary */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-center">
-          <p className="text-lg font-bold text-emerald-700">{parsed.valid.length}</p>
-          <p className="text-[11px] text-emerald-600 mt-0.5">Ready to import</p>
+        <div className="flex-1 rounded-lg px-4 py-3 text-center"
+          style={{ backgroundColor: 'var(--success-bg)', border: '1px solid var(--success-border)' }}>
+          <p className="text-lg font-bold" style={{ color: 'var(--success)' }}>{parsed.valid.length}</p>
+          <p className="text-[11px] mt-0.5" style={{ color: 'var(--success)' }}>Ready to import</p>
         </div>
         {hasErrors && (
-          <div className="flex-1 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-center">
-            <p className="text-lg font-bold text-red-600">{parsed.errors.length}</p>
-            <p className="text-[11px] text-red-500 mt-0.5">Row{parsed.errors.length !== 1 ? 's' : ''} with errors</p>
+          <div className="flex-1 rounded-lg px-4 py-3 text-center"
+            style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }}>
+            <p className="text-lg font-bold" style={{ color: 'var(--danger)' }}>{parsed.errors.length}</p>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--danger)' }}>Row{parsed.errors.length !== 1 ? 's' : ''} with errors</p>
           </div>
         )}
       </div>
@@ -406,28 +406,28 @@ function PreviewStage({ parsed }: { parsed: ParseResult }) {
       {/* Preview table */}
       {previewRows.length > 0 && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--text-dim)' }}>
             Preview (first {previewRows.length} rows)
           </p>
-          <div className="overflow-x-auto rounded-xl border border-slate-200">
+          <div className="overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border)' }}>
             <table className="w-full text-xs border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
+                <tr style={{ backgroundColor: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
                   {['Name', 'Funder', 'Category', 'Deadline', 'Amount', 'Status'].map(h => (
-                    <th key={h} className="px-3 py-2 text-left font-semibold text-slate-500 whitespace-nowrap">
+                    <th key={h} className="px-3 py-2 text-left font-semibold whitespace-nowrap" style={{ color: 'var(--text-dim)' }}>
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody>
                 {previewRows.map((row, i) => (
-                  <tr key={i} className="bg-white">
-                    <td className="px-3 py-2 font-medium text-slate-800 max-w-[160px] truncate">{row.name}</td>
-                    <td className="px-3 py-2 text-slate-600 max-w-[120px] truncate">{row.funder}</td>
-                    <td className="px-3 py-2 text-slate-500">{row.category ?? '—'}</td>
-                    <td className="px-3 py-2 text-slate-500 whitespace-nowrap">{row.deadline ?? '—'}</td>
-                    <td className="px-3 py-2 text-slate-500 whitespace-nowrap">
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
+                    <td className="px-3 py-2 font-medium max-w-[160px] truncate" style={{ color: 'var(--text-primary)' }}>{row.name}</td>
+                    <td className="px-3 py-2 max-w-[120px] truncate" style={{ color: 'var(--text-secondary)' }}>{row.funder}</td>
+                    <td className="px-3 py-2" style={{ color: 'var(--text-dim)' }}>{row.category ?? '—'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap" style={{ color: 'var(--text-dim)' }}>{row.deadline ?? '—'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap" style={{ color: 'var(--text-dim)' }}>
                       {row.amount_high != null
                         ? `$${row.amount_high.toLocaleString()}`
                         : row.amount_low != null
@@ -435,7 +435,8 @@ function PreviewStage({ parsed }: { parsed: ParseResult }) {
                         : '—'}
                     </td>
                     <td className="px-3 py-2">
-                      <span className="rounded-full bg-slate-100 text-slate-600 px-2 py-0.5 text-[10px] font-medium">
+                      <span className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                        style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-secondary)' }}>
                         {row.initial_status}
                       </span>
                     </td>
@@ -445,7 +446,7 @@ function PreviewStage({ parsed }: { parsed: ParseResult }) {
             </table>
           </div>
           {parsed.valid.length > 5 && (
-            <p className="text-[11px] text-slate-400 mt-1.5 text-right">
+            <p className="text-[11px] mt-1.5 text-right" style={{ color: 'var(--text-dim)' }}>
               + {parsed.valid.length - 5} more row{parsed.valid.length - 5 !== 1 ? 's' : ''}
             </p>
           )}
@@ -455,12 +456,13 @@ function PreviewStage({ parsed }: { parsed: ParseResult }) {
       {/* Errors */}
       {hasErrors && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-red-400 mb-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--danger)' }}>
             Rows with errors (will be skipped)
           </p>
-          <div className="space-y-1 max-h-40 overflow-y-auto rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+          <div className="space-y-1 max-h-40 overflow-y-auto rounded-xl px-3 py-2"
+            style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }}>
             {parsed.errors.map((e: ParseError, i: number) => (
-              <p key={i} className="text-[11px] text-red-600">
+              <p key={i} className="text-[11px]" style={{ color: 'var(--danger)' }}>
                 <span className="font-semibold">Row {e.row}:</span> {e.message}
               </p>
             ))}
@@ -478,23 +480,20 @@ function ImportingStage({ progress, total }: { progress: number; total: number }
 
   return (
     <div className="flex flex-col items-center justify-center py-16 px-8 gap-5">
-      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-        <svg className="animate-spin w-6 h-6 text-slate-500" viewBox="0 0 24 24" fill="none">
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--surface-2)' }}>
+        <svg className="animate-spin w-6 h-6" style={{ color: 'var(--gold)' }} viewBox="0 0 24 24" fill="none">
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
         </svg>
       </div>
       <div className="text-center">
-        <p className="text-sm font-semibold text-slate-800">Importing grants…</p>
-        <p className="text-xs text-slate-400 mt-1">{progress} of {total} processed</p>
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Importing grants…</p>
+        <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>{progress} of {total} processed</p>
       </div>
-      <div className="w-full max-w-xs bg-slate-200 rounded-full h-2 overflow-hidden">
-        <div
-          className="h-2 rounded-full transition-all duration-300"
-          style={{ width: `${pct}%`, backgroundColor: 'var(--gold)' }}
-        />
+      <div className="w-full max-w-xs rounded-full h-2 overflow-hidden" style={{ backgroundColor: 'var(--surface-3)' }}>
+        <div className="h-2 rounded-full transition-all duration-300" style={{ width: `${pct}%`, backgroundColor: 'var(--gold)' }} />
       </div>
-      <p className="text-xs text-slate-400">{pct}%</p>
+      <p className="text-xs" style={{ color: 'var(--text-dim)' }}>{pct}%</p>
     </div>
   )
 }
@@ -506,15 +505,15 @@ function DoneStage({ result, onClose }: { result: ImportResult; onClose: () => v
 
   return (
     <div className="flex flex-col items-center justify-center py-12 px-8 gap-5 text-center">
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center
-        ${allOk ? 'bg-emerald-100' : 'bg-amber-100'}`}>
+      <div className="w-12 h-12 rounded-xl flex items-center justify-center"
+        style={{ backgroundColor: allOk ? 'var(--success-bg)' : 'var(--warning-bg)' }}>
         {allOk ? (
-          <svg className="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24"
+          <svg className="w-6 h-6" style={{ color: 'var(--success)' }} fill="none" viewBox="0 0 24 24"
             stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         ) : (
-          <svg className="w-6 h-6 text-amber-600" fill="none" viewBox="0 0 24 24"
+          <svg className="w-6 h-6" style={{ color: 'var(--warning)' }} fill="none" viewBox="0 0 24 24"
             stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round"
               d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
@@ -523,31 +522,31 @@ function DoneStage({ result, onClose }: { result: ImportResult; onClose: () => v
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-slate-800">
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
           {allOk ? 'Import complete!' : 'Import finished with some errors'}
         </p>
-        <p className="text-xs text-slate-500 mt-1">
-          Successfully imported <span className="font-semibold text-emerald-600">{result.imported}</span> grant{result.imported !== 1 ? 's' : ''}
+        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+          Successfully imported{' '}
+          <span className="font-semibold" style={{ color: 'var(--success)' }}>{result.imported}</span>
+          {' '}grant{result.imported !== 1 ? 's' : ''}
           {result.failed > 0 && (
-            <>, <span className="font-semibold text-red-500">{result.failed}</span> failed</>
+            <>, <span className="font-semibold" style={{ color: 'var(--danger)' }}>{result.failed}</span> failed</>
           )}
         </p>
       </div>
 
       {result.errors.length > 0 && (
-        <div className="w-full text-left space-y-1 max-h-40 overflow-y-auto
-          rounded-xl border border-red-200 bg-red-50 px-3 py-2">
+        <div className="w-full text-left space-y-1 max-h-40 overflow-y-auto rounded-xl px-3 py-2"
+          style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }}>
           {result.errors.map((e: string, i: number) => (
-            <p key={i} className="text-[11px] text-red-600">{e}</p>
+            <p key={i} className="text-[11px]" style={{ color: 'var(--danger)' }}>{e}</p>
           ))}
         </div>
       )}
 
-      <button
-        onClick={onClose}
-        className="rounded-lg px-5 py-2 text-sm font-semibold text-white transition-colors"
-        style={{ backgroundColor: 'var(--gold)' }}
-      >
+      <button onClick={onClose}
+        className="rounded-lg px-5 py-2 text-sm font-semibold transition-colors btn-scale"
+        style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}>
         Done
       </button>
     </div>

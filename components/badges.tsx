@@ -3,13 +3,13 @@ import { fitBand, FIT_COLORS, type FitBand } from '@/lib/utils/scoring'
 
 /* ── Shared primitive ───────────────────────────────────────── */
 function Badge({
-  bg, text, border, children,
+  bg, text, border, glow, children,
 }: {
-  bg: string; text: string; border: string; children: React.ReactNode
+  bg: string; text: string; border: string; glow?: string; children: React.ReactNode
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${bg} ${text} ${border}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${bg} ${text} ${border} ${glow ?? ''}`}
     >
       {children}
     </span>
@@ -17,7 +17,6 @@ function Badge({
 }
 
 /* ── FitBadge ───────────────────────────────────────────────── */
-
 const FIT_LABEL: Record<FitBand, string> = {
   excellent: 'Excellent fit',
   good:      'Good fit',
@@ -40,24 +39,17 @@ export function FitBadge({ score }: { score: number | null | undefined }) {
 }
 
 /* ── StatusBadge ────────────────────────────────────────────── */
-
 type GrantStatus =
-  | 'researching'
-  | 'drafting'
-  | 'submitted'
-  | 'awarded'
-  | 'declined'
-  | 'withdrawn'
-  | 'expired'
-  | (string & {})   // allow arbitrary strings while keeping autocomplete
+  | 'researching' | 'drafting' | 'submitted' | 'awarded'
+  | 'declined' | 'withdrawn' | 'expired' | (string & {})
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; border: string; label: string }> = {
-  researching: { bg: 'bg-sky-500/10',     text: 'text-sky-500',     border: 'border-sky-500/30',     label: 'Researching' },
-  drafting:    { bg: 'bg-violet-500/10',  text: 'text-violet-500',  border: 'border-violet-500/30',  label: 'Drafting' },
-  submitted:   { bg: 'bg-amber-500/10',   text: 'text-amber-500',   border: 'border-amber-500/30',   label: 'Submitted' },
-  awarded:     { bg: 'bg-emerald-500/10', text: 'text-emerald-500', border: 'border-emerald-500/30', label: 'Awarded' },
-  declined:    { bg: 'bg-red-500/10',     text: 'text-red-400',     border: 'border-red-500/30',     label: 'Declined' },
-  withdrawn:   { bg: 'bg-slate-500/10',   text: 'text-slate-400',   border: 'border-slate-500/30',   label: 'Withdrawn' },
+  researching: { bg: 'bg-sky-500/10',     text: 'text-sky-400',     border: 'border-sky-500/25',     label: 'Researching' },
+  drafting:    { bg: 'bg-violet-500/10',  text: 'text-violet-400',  border: 'border-violet-500/25',  label: 'Drafting' },
+  submitted:   { bg: 'bg-amber-500/10',   text: 'text-amber-400',   border: 'border-amber-500/25',   label: 'Submitted' },
+  awarded:     { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/25', label: 'Awarded' },
+  declined:    { bg: 'bg-red-500/10',     text: 'text-red-400',     border: 'border-red-500/25',     label: 'Declined' },
+  withdrawn:   { bg: 'bg-slate-500/10',   text: 'text-slate-400',   border: 'border-slate-500/20',   label: 'Withdrawn' },
   expired:     { bg: 'bg-slate-500/10',   text: 'text-slate-400',   border: 'border-slate-500/20',   label: 'Expired' },
 }
 
@@ -67,30 +59,17 @@ const FALLBACK_STATUS = {
 
 export function StatusBadge({ status }: { status: GrantStatus }) {
   const s = STATUS_STYLES[status] ?? { ...FALLBACK_STATUS, label: status }
-  return (
-    <Badge bg={s.bg} text={s.text} border={s.border}>
-      {s.label}
-    </Badge>
-  )
+  return <Badge bg={s.bg} text={s.text} border={s.border}>{s.label}</Badge>
 }
 
 /* ── DeadlineBadge ──────────────────────────────────────────── */
-
-/**
- * Urgency tiers:
- *   overdue  → red with glow
- *   ≤7 days  → red
- *   ≤14 days → amber
- *   ≤30 days → sky
- *   >30 days → slate
- */
 function deadlineStyles(days: number | null): { bg: string; text: string; border: string; glow?: string } {
-  if (days === null)  return { bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/20' }
-  if (days < 0)       return { bg: 'bg-red-500/10',   text: 'text-red-400',   border: 'border-red-500/40',  glow: 'shadow-[0_0_8px_2px_rgba(239,68,68,0.25)]' }
-  if (days <= 7)      return { bg: 'bg-red-500/10',   text: 'text-red-400',   border: 'border-red-500/40',  glow: 'shadow-[0_0_8px_2px_rgba(239,68,68,0.25)]' }
-  if (days <= 14)     return { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/40' }
-  if (days <= 30)     return { bg: 'bg-sky-500/10',   text: 'text-sky-400',   border: 'border-sky-500/30' }
-  return               { bg: 'bg-slate-500/10',  text: 'text-slate-400',  border: 'border-slate-500/20' }
+  if (days === null)  return { bg: 'bg-slate-500/10',   text: 'text-slate-500',   border: 'border-slate-500/20' }
+  if (days < 0)       return { bg: 'bg-red-500/10',     text: 'text-red-400',     border: 'border-red-500/30',   glow: 'shadow-[0_0_8px_1px_rgba(196,90,90,0.25)]' }
+  if (days <= 7)      return { bg: 'bg-red-500/10',     text: 'text-red-400',     border: 'border-red-500/30',   glow: 'shadow-[0_0_8px_1px_rgba(196,90,90,0.25)]' }
+  if (days <= 14)     return { bg: 'bg-amber-500/10',   text: 'text-amber-400',   border: 'border-amber-500/30' }
+  if (days <= 30)     return { bg: 'bg-sky-500/10',     text: 'text-sky-400',     border: 'border-sky-500/25' }
+  return               { bg: 'bg-slate-500/10',   text: 'text-slate-500',   border: 'border-slate-500/20' }
 }
 
 export function DeadlineBadge({ date }: { date: string | null | undefined }) {

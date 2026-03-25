@@ -63,7 +63,6 @@ export default function DraftsPage() {
 
   const sections: GrantSection[] = detail?.sections ?? []
 
-  // Auto-select first section when sections load or grant changes
   useEffect(() => {
     if (sections.length > 0 && !sections.find(s => s.title === selectedSection)) {
       setSelectedSection(sections[0].title)
@@ -161,12 +160,15 @@ export default function DraftsPage() {
   })
 
   return (
-    <div className="flex h-full min-h-0 overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
+    <div className="flex h-full min-h-0 overflow-hidden" style={{ backgroundColor: 'var(--bg)' }}>
 
       {/* ── Left: Grant list ────────────────────────────────── */}
-      <aside className="w-[248px] shrink-0 flex flex-col border-r border-slate-200 bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Active Drafts</h2>
+      <aside
+        className="w-[248px] shrink-0 flex flex-col overflow-hidden"
+        style={{ borderRight: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
+      >
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Active Drafts</h2>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -174,17 +176,20 @@ export default function DraftsPage() {
             <GrantListSkeleton />
           ) : workingGrants.length === 0 ? (
             <div className="px-4 py-10 flex flex-col items-center text-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24"
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}
+              >
+                <svg className="w-5 h-5" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
                   stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round"
                     d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
                 </svg>
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-600 mb-1">No active drafts</p>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Move a grant to <span className="font-medium text-violet-500">Writing</span> status in the Pipeline to start drafting.
+                <p className="text-xs font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>No active drafts</p>
+                <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+                  Move a grant to <span className="font-medium" style={{ color: '#a78bfa' }}>Writing</span> status in the Pipeline to start drafting.
                 </p>
               </div>
             </div>
@@ -204,17 +209,23 @@ export default function DraftsPage() {
       </aside>
 
       {/* ── Center: Editor ──────────────────────────────────── */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-white">
+      <main
+        className="flex-1 flex flex-col min-w-0 overflow-hidden"
+        style={{ backgroundColor: 'var(--surface)' }}
+      >
         {!selectedGrant ? (
           <EmptyEditor />
         ) : (
           <>
             {/* Grant title bar */}
-            <div className="px-5 py-3 border-b border-slate-200 flex items-center justify-between gap-4 shrink-0">
+            <div
+              className="px-5 py-3 flex items-center justify-between gap-4 shrink-0"
+              style={{ borderBottom: '1px solid var(--border)' }}
+            >
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-slate-900 truncate">{selectedGrant.name}</p>
+                <p className="text-sm font-semibold truncate" style={{ color: 'var(--text-primary)' }}>{selectedGrant.name}</p>
                 {selectedGrant.funder && (
-                  <p className="text-xs text-slate-400 truncate">{selectedGrant.funder}</p>
+                  <p className="text-xs truncate" style={{ color: 'var(--text-dim)' }}>{selectedGrant.funder}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -223,21 +234,23 @@ export default function DraftsPage() {
                   <button
                     onClick={handleExport}
                     disabled={!hasContent || exportLoading}
-                    className="flex items-center gap-1.5 rounded-md border border-slate-300 bg-white
-                      px-2.5 py-1.5 text-xs font-medium text-slate-600
-                      hover:border-slate-400 hover:text-slate-900
+                    className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium
                       disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                    style={{
+                      backgroundColor: 'var(--surface-2)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
                   >
                     {exportLoading ? (
                       <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10"
-                          stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor"
-                          d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
                       </svg>
                     ) : (
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor" strokeWidth={1.75}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
                         <path strokeLinecap="round" strokeLinejoin="round"
                           d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
                       </svg>
@@ -245,8 +258,10 @@ export default function DraftsPage() {
                     Export Word
                   </button>
                   {!hasContent && (
-                    <div className="absolute right-0 top-full mt-1.5 z-10 hidden group-hover:block
-                      w-52 rounded-lg bg-slate-800 px-3 py-2 text-[11px] text-slate-200 shadow-lg">
+                    <div
+                      className="absolute right-0 top-full mt-1.5 z-10 hidden group-hover:block w-52 rounded-lg px-3 py-2 text-[11px] shadow-lg"
+                      style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-secondary)' }}
+                    >
                       Write at least one section before exporting
                     </div>
                   )}
@@ -256,23 +271,41 @@ export default function DraftsPage() {
 
             {/* Section tabs */}
             {sections.length > 0 && (
-              <div className="flex items-center gap-1 px-4 py-2 border-b border-slate-200 bg-slate-50 overflow-x-auto shrink-0">
+              <div
+                className="flex items-center gap-1 px-4 py-2 overflow-x-auto shrink-0"
+                style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface-2)' }}
+              >
                 {sections.map(s => (
                   <button
                     key={s.title}
                     onClick={() => setSelectedSection(s.title)}
-                    className={`shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap
-                      ${s.title === selectedSection
-                        ? 'bg-white border border-slate-300 text-slate-900 shadow-sm'
-                        : 'text-slate-500 hover:text-slate-700 hover:bg-white/60'
-                      }`}
+                    className="shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap"
+                    style={s.title === selectedSection
+                      ? {
+                          backgroundColor: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          color: 'var(--text-primary)',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                        }
+                      : { color: 'var(--text-dim)', border: '1px solid transparent' }
+                    }
+                    onMouseEnter={e => {
+                      if (s.title !== selectedSection) {
+                        (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (s.title !== selectedSection) {
+                        (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+                      }
+                    }}
                   >
                     {s.title}
                     {s.page_limit && (
-                      <span className="ml-1.5 text-slate-400 font-normal">{s.page_limit}p</span>
+                      <span className="ml-1.5 font-normal" style={{ color: 'var(--text-dim)' }}>{s.page_limit}p</span>
                     )}
                     {wordCount(contents[s.title] ?? '') > 0 && (
-                      <span className="ml-1.5 w-1.5 h-1.5 rounded-full bg-violet-400 inline-block align-middle" />
+                      <span className="ml-1.5 w-1.5 h-1.5 rounded-full inline-block align-middle" style={{ backgroundColor: '#a78bfa' }} />
                     )}
                   </button>
                 ))}
@@ -283,12 +316,12 @@ export default function DraftsPage() {
             <div className="flex-1 flex flex-col min-h-0">
               {draftLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <span className="text-xs text-slate-400 animate-pulse">Loading drafts…</span>
+                  <span className="text-xs animate-pulse" style={{ color: 'var(--text-dim)' }}>Loading drafts…</span>
                 </div>
               ) : sections.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-2 text-center px-8">
-                  <p className="text-sm font-medium text-slate-600">No sections defined</p>
-                  <p className="text-xs text-slate-400 max-w-xs">
+                  <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>No sections defined</p>
+                  <p className="text-xs max-w-xs" style={{ color: 'var(--text-dim)' }}>
                     Add sections to this grant from Grant Discovery to start writing.
                   </p>
                 </div>
@@ -301,23 +334,32 @@ export default function DraftsPage() {
                     onChange={e => updateContent(activeSection.title, e.target.value)}
                     onBlur={() => saveDraft(activeSection.title)}
                     placeholder={`Write the "${activeSection.title}" section here…`}
-                    className="flex-1 w-full resize-none px-6 py-5 text-sm text-slate-800 leading-relaxed
-                      bg-white focus:outline-none font-mono placeholder:text-slate-300 placeholder:font-sans"
+                    className="flex-1 w-full resize-none px-6 py-5 text-sm leading-relaxed focus:outline-none font-mono"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      color: 'var(--text-primary)',
+                    }}
                     spellCheck
                   />
                   {/* Status bar */}
-                  <div className="shrink-0 flex items-center justify-between px-6 py-2
-                    border-t border-slate-100 bg-slate-50 text-[11px] text-slate-400">
+                  <div
+                    className="shrink-0 flex items-center justify-between px-6 py-2 text-[11px]"
+                    style={{
+                      borderTop: '1px solid var(--border)',
+                      backgroundColor: 'var(--surface-2)',
+                      color: 'var(--text-dim)',
+                    }}
+                  >
                     <span className="flex items-center gap-3 tabular-nums">
                       <span>
                         {wordCount(activeContent).toLocaleString()} words
                         {(() => {
                           const est = pageEstimate(wordCount(activeContent), activeSection.page_limit)
-                          return est ? <span className="ml-2 text-slate-300">· {est}</span> : null
+                          return est ? <span className="ml-2" style={{ color: 'var(--text-dim)', opacity: 0.6 }}>· {est}</span> : null
                         })()}
                       </span>
                       {(versions[activeSection.title] ?? 0) > 0 && (
-                        <span className="text-slate-300">
+                        <span style={{ opacity: 0.5 }}>
                           v{versions[activeSection.title]}
                         </span>
                       )}
@@ -326,12 +368,16 @@ export default function DraftsPage() {
                       <SaveIndicator status={saveStatus} />
                       <button
                         onClick={() => setShowSnippetPicker(true)}
-                        className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px]
-                          font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900
-                          transition-colors flex items-center gap-1"
+                        className="rounded-md px-2.5 py-1 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                        style={{
+                          backgroundColor: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          color: 'var(--text-secondary)',
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
                       >
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24"
-                          stroke="currentColor" strokeWidth={2}>
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round"
                             d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10
                               A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385
@@ -349,17 +395,24 @@ export default function DraftsPage() {
                           }
                         }}
                         disabled={aiLoading}
-                        className="rounded-md border border-violet-300 bg-violet-50 px-2.5 py-1 text-[11px]
-                          font-medium text-violet-700 hover:border-violet-400 hover:bg-violet-100
-                          disabled:opacity-40 transition-colors flex items-center gap-1"
+                        className="rounded-md px-2.5 py-1 text-[11px] font-medium flex items-center gap-1 transition-colors disabled:opacity-40"
+                        style={{
+                          backgroundColor: 'rgba(139,92,246,0.12)',
+                          border: '1px solid rgba(139,92,246,0.25)',
+                          color: '#a78bfa',
+                        }}
+                        onMouseEnter={e => {
+                          (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139,92,246,0.2)'
+                        }}
+                        onMouseLeave={e => {
+                          (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139,92,246,0.12)'
+                        }}
                       >
                         {aiLoading ? (
                           <>
                             <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
-                              <circle className="opacity-25" cx="12" cy="12" r="10"
-                                stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor"
-                                d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
                             </svg>
                             Generating…
                           </>
@@ -375,16 +428,20 @@ export default function DraftsPage() {
                       <button
                         onClick={() => saveDraft(activeSection.title)}
                         disabled={saveStatus === 'saving'}
-                        className="rounded-md border border-slate-300 bg-white px-2.5 py-1 text-[11px]
-                          font-medium text-slate-600 hover:border-slate-400 hover:text-slate-900
-                          disabled:opacity-40 transition-colors"
+                        className="rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-40"
+                        style={{
+                          backgroundColor: 'var(--surface)',
+                          border: '1px solid var(--border)',
+                          color: 'var(--text-secondary)',
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
                       >
                         Save
                       </button>
                     </div>
                   </div>
 
-                  {/* Snippet picker modal */}
                   {showSnippetPicker && (
                     <SnippetPickerModal
                       snippets={snippets}
@@ -393,7 +450,6 @@ export default function DraftsPage() {
                     />
                   )}
 
-                  {/* AI Draft mode modal */}
                   {showAiModal && (
                     <AiDraftModal
                       onGenerate={() => handleAiDraft('generate')}
@@ -409,21 +465,24 @@ export default function DraftsPage() {
       </main>
 
       {/* ── Right: Requirements panel ────────────────────────── */}
-      <aside className="w-[272px] shrink-0 flex flex-col border-l border-slate-200 bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Requirements</h2>
+      <aside
+        className="w-[272px] shrink-0 flex flex-col overflow-hidden"
+        style={{ borderLeft: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}
+      >
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>Requirements</h2>
         </div>
 
         {!selectedGrant ? (
           <div className="flex-1 flex items-center justify-center px-4">
-            <p className="text-xs text-slate-400 text-center">Select a grant to see requirements.</p>
+            <p className="text-xs text-center" style={{ color: 'var(--text-dim)' }}>Select a grant to see requirements.</p>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 overflow-y-auto">
 
             {/* Quick facts */}
-            <div className="px-4 py-3 space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">Quick Facts</p>
+            <div className="px-4 py-3 space-y-2" style={{ borderBottom: '1px solid var(--border)' }}>
+              <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>Quick Facts</p>
 
               <QuickFact label="Deadline">
                 {selectedGrant.deadline ? formatDeadline(selectedGrant.deadline) : '—'}
@@ -446,8 +505,8 @@ export default function DraftsPage() {
 
             {/* Sections checklist */}
             {sections.length > 0 && (
-              <div className="px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>
                   Sections ({sections.length})
                 </p>
                 <div className="space-y-1">
@@ -458,11 +517,26 @@ export default function DraftsPage() {
                       <button
                         key={s.title}
                         onClick={() => setSelectedSection(s.title)}
-                        className={`w-full flex items-start gap-2.5 text-left rounded-lg px-2 py-1.5 transition-colors
-                          ${s.title === selectedSection ? 'bg-slate-100' : 'hover:bg-slate-50'}`}
+                        className="w-full flex items-start gap-2.5 text-left rounded-lg px-2 py-1.5 transition-colors"
+                        style={{
+                          backgroundColor: s.title === selectedSection ? 'var(--surface-2)' : undefined,
+                        }}
+                        onMouseEnter={e => {
+                          if (s.title !== selectedSection)
+                            (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+                        }}
+                        onMouseLeave={e => {
+                          if (s.title !== selectedSection)
+                            (e.currentTarget as HTMLElement).style.backgroundColor = ''
+                        }}
                       >
-                        <span className={`mt-0.5 w-3.5 h-3.5 shrink-0 rounded-full border-2 flex items-center justify-center
-                          ${started ? 'border-violet-400 bg-violet-400' : 'border-slate-300 bg-white'}`}>
+                        <span
+                          className="mt-0.5 w-3.5 h-3.5 shrink-0 rounded-full border-2 flex items-center justify-center"
+                          style={started
+                            ? { borderColor: '#a78bfa', backgroundColor: '#a78bfa' }
+                            : { borderColor: 'var(--border-2)', backgroundColor: 'transparent' }
+                          }
+                        >
                           {started && (
                             <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24"
                               stroke="currentColor" strokeWidth={3.5}>
@@ -471,11 +545,11 @@ export default function DraftsPage() {
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className={`text-xs font-medium truncate leading-snug
-                            ${started ? 'text-slate-800' : 'text-slate-500'}`}>
+                          <p className="text-xs font-medium truncate leading-snug"
+                            style={{ color: started ? 'var(--text-primary)' : 'var(--text-dim)' }}>
                             {s.title}
                           </p>
-                          <p className="text-[11px] text-slate-400 tabular-nums">
+                          <p className="text-[11px] tabular-nums" style={{ color: 'var(--text-dim)' }}>
                             {s.page_limit ? `${s.page_limit}p limit` : 'No page limit'}
                             {started && <span className="ml-1.5">· {words.toLocaleString()}w</span>}
                           </p>
@@ -489,15 +563,18 @@ export default function DraftsPage() {
 
             {/* Attachments checklist */}
             {!draftLoading && (detail?.attachments?.length ?? 0) > 0 && (
-              <div className="px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>
                   Attachments ({detail!.attachments!.length})
                 </p>
                 <div className="space-y-1.5">
                   {detail!.attachments!.map((a, i) => (
                     <div key={i} className="flex items-center gap-2.5 px-2 py-1">
-                      <span className="w-3.5 h-3.5 shrink-0 rounded border-2 border-slate-300 bg-white" />
-                      <p className="text-xs text-slate-500 leading-snug">{a.name}</p>
+                      <span
+                        className="w-3.5 h-3.5 shrink-0 rounded border-2"
+                        style={{ borderColor: 'var(--border-2)', backgroundColor: 'transparent' }}
+                      />
+                      <p className="text-xs leading-snug" style={{ color: 'var(--text-dim)' }}>{a.name}</p>
                     </div>
                   ))}
                 </div>
@@ -507,8 +584,8 @@ export default function DraftsPage() {
             {/* Description */}
             {!draftLoading && detail?.description && (
               <div className="px-4 py-3">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-2">About</p>
-                <p className="text-xs text-slate-500 leading-relaxed line-clamp-6">{detail.description}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--text-dim)' }}>About</p>
+                <p className="text-xs leading-relaxed line-clamp-6" style={{ color: 'var(--text-dim)' }}>{detail.description}</p>
               </div>
             )}
 
@@ -535,26 +612,37 @@ function GrantListItem({
     <li>
       <button
         onClick={onClick}
-        className={`w-full text-left px-4 py-3 transition-colors border-r-2
-          ${selected
-            ? 'bg-violet-50 border-violet-400'
-            : 'hover:bg-slate-50 border-transparent'
-          }`}
+        className="w-full text-left px-4 py-3 transition-colors border-r-2"
+        style={{
+          backgroundColor: selected ? 'rgba(139,92,246,0.08)' : undefined,
+          borderRightColor: selected ? '#a78bfa' : 'transparent',
+        }}
+        onMouseEnter={e => {
+          if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+        }}
+        onMouseLeave={e => {
+          if (!selected) (e.currentTarget as HTMLElement).style.backgroundColor = ''
+        }}
       >
-        <p className={`text-xs font-semibold leading-snug line-clamp-2 mb-1
-          ${selected ? 'text-slate-900' : 'text-slate-700'}`}>
+        <p className="text-xs font-semibold leading-snug line-clamp-2 mb-1"
+          style={{ color: selected ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
           {g.name}
         </p>
         {g.funder && (
-          <p className="text-[11px] text-slate-400 truncate mb-1.5">{g.funder}</p>
+          <p className="text-[11px] truncate mb-1.5" style={{ color: 'var(--text-dim)' }}>{g.funder}</p>
         )}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={`inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium
-            ${g.pipeline_status === 'writing'
-              ? 'bg-violet-100 text-violet-700'
-              : 'bg-amber-100 text-amber-700'
-            }`}>
-            <span className={`w-1 h-1 rounded-full ${g.pipeline_status === 'writing' ? 'bg-violet-400' : 'bg-amber-400'}`} />
+          <span
+            className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+            style={g.pipeline_status === 'writing'
+              ? { backgroundColor: 'rgba(139,92,246,0.12)', color: '#a78bfa' }
+              : { backgroundColor: 'rgba(199,169,78,0.12)', color: 'var(--gold)' }
+            }
+          >
+            <span
+              className="w-1 h-1 rounded-full"
+              style={{ backgroundColor: g.pipeline_status === 'writing' ? '#a78bfa' : 'var(--gold)' }}
+            />
             {g.pipeline_status === 'writing' ? 'Writing' : 'Submitted'}
           </span>
           {g.deadline && <DeadlineBadge date={g.deadline} />}
@@ -569,7 +657,7 @@ function GrantListItem({
 function SaveIndicator({ status }: { status: SaveStatus }) {
   if (status === 'idle')   return null
   if (status === 'saving') return (
-    <span className="flex items-center gap-1 text-slate-400">
+    <span className="flex items-center gap-1" style={{ color: 'var(--text-dim)' }}>
       <svg className="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none">
         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
@@ -577,8 +665,8 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
       Saving…
     </span>
   )
-  if (status === 'saved') return <span className="text-emerald-500">Saved</span>
-  return <span className="text-red-400">Save failed</span>
+  if (status === 'saved') return <span style={{ color: 'var(--success)' }}>Saved</span>
+  return <span style={{ color: 'var(--danger)' }}>Save failed</span>
 }
 
 /* ── Quick fact row ─────────────────────────────────────────── */
@@ -586,8 +674,8 @@ function SaveIndicator({ status }: { status: SaveStatus }) {
 function QuickFact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline gap-2">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 w-16 shrink-0">{label}</span>
-      <span className="text-xs text-slate-700">{children}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-wide w-16 shrink-0" style={{ color: 'var(--text-dim)' }}>{label}</span>
+      <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>{children}</span>
     </div>
   )
 }
@@ -597,17 +685,20 @@ function QuickFact({ label, children }: { label: string; children: React.ReactNo
 function EmptyEditor() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center px-10">
-      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
-        <svg className="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24"
+      <div
+        className="w-12 h-12 rounded-xl flex items-center justify-center"
+        style={{ backgroundColor: 'var(--surface-2)', border: '1px solid var(--border)' }}
+      >
+        <svg className="w-6 h-6" style={{ color: 'var(--text-dim)' }} fill="none" viewBox="0 0 24 24"
           stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round"
             d="M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
         </svg>
       </div>
       <div>
-        <p className="text-sm font-semibold text-slate-700">Move a grant to Writing to start drafting</p>
-        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed max-w-xs">
-          Open the Pipeline, move a grant to <span className="font-medium text-violet-500">Writing</span> status, then select it here to begin.
+        <p className="text-sm font-semibold" style={{ color: 'var(--text-secondary)' }}>Move a grant to Writing to start drafting</p>
+        <p className="text-xs mt-1.5 leading-relaxed max-w-xs" style={{ color: 'var(--text-dim)' }}>
+          Open the Pipeline, move a grant to <span className="font-medium" style={{ color: '#a78bfa' }}>Writing</span> status, then select it here to begin.
         </p>
       </div>
     </div>
@@ -617,14 +708,14 @@ function EmptyEditor() {
 /* ── Snippet picker modal ────────────────────────────────────── */
 
 const CATEGORY_COLORS: Record<SnippetCategory, string> = {
-  'Mission & Vision':        'bg-blue-500/10   text-blue-600   border-blue-500/20',
-  'Community Description':   'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
-  'Organization Background': 'bg-amber-500/10  text-amber-600  border-amber-500/20',
-  'Project Team':            'bg-violet-500/10 text-violet-600 border-violet-500/20',
-  'Budget Justification':    'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  'Data & Outcomes':         'bg-cyan-500/10   text-cyan-600   border-cyan-500/20',
-  'Letters of Support':      'bg-rose-500/10   text-rose-500   border-rose-500/20',
-  'General':                 'bg-slate-100     text-slate-600  border-slate-200',
+  'Mission & Vision':        'bg-blue-500/10   text-blue-400   border-blue-500/20',
+  'Community Description':   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Organization Background': 'bg-amber-500/10  text-amber-400  border-amber-500/20',
+  'Project Team':            'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  'Budget Justification':    'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  'Data & Outcomes':         'bg-cyan-500/10   text-cyan-400   border-cyan-500/20',
+  'Letters of Support':      'bg-rose-500/10   text-rose-400   border-rose-500/20',
+  'General':                 'bg-slate-500/10  text-slate-400  border-slate-500/20',
 }
 
 function SnippetPickerModal({
@@ -656,34 +747,51 @@ function SnippetPickerModal({
       if (!map[s.category]) map[s.category] = []
       map[s.category]!.push(s)
     }
-    // Return in canonical category order
     return SNIPPET_CATEGORIES
       .filter(c => map[c]?.length)
       .map(c => ({ category: c, items: map[c]! }))
   }, [filtered])
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md flex flex-col max-h-[75vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div
+        className="rounded-2xl w-full max-w-md flex flex-col max-h-[75vh]"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 shrink-0">
-          <h2 className="text-sm font-semibold text-slate-900">Insert Snippet</h2>
+        <div className="flex items-center justify-between px-5 py-4 shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>Insert Snippet</h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Search */}
-        <div className="px-4 py-3 border-b border-slate-100 shrink-0">
+        <div className="px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="relative">
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400"
-              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
+              style={{ color: 'var(--text-dim)' }}
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+            >
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0Z" />
             </svg>
@@ -693,9 +801,13 @@ function SnippetPickerModal({
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search snippets…"
-              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-slate-300
-                focus:outline-none focus:ring-2 focus:border-transparent"
-              style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+              className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg focus:outline-none focus:ring-2 focus:border-transparent"
+              style={{
+                backgroundColor: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-primary)',
+                '--tw-ring-color': 'var(--gold)',
+              } as React.CSSProperties}
             />
           </div>
         </div>
@@ -704,14 +816,14 @@ function SnippetPickerModal({
         <div className="flex-1 overflow-y-auto">
           {grouped.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-              <p className="text-sm text-slate-500">No snippets found</p>
-              <p className="text-xs text-slate-400 mt-1">Try a different search term</p>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>No snippets found</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>Try a different search term</p>
             </div>
           ) : (
             grouped.map(({ category, items }) => (
               <div key={category}>
                 <div className="px-4 pt-3 pb-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-dim)' }}>
                     {category}
                   </p>
                 </div>
@@ -719,16 +831,18 @@ function SnippetPickerModal({
                   <button
                     key={s.id}
                     onClick={() => onInsert(s)}
-                    className="w-full text-left px-4 py-2.5 hover:bg-slate-50 transition-colors"
+                    className="w-full text-left px-4 py-2.5 transition-colors"
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.backgroundColor = '' }}
                   >
                     <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-xs font-semibold text-slate-800">{s.title}</p>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>{s.title}</p>
                       <span className={`inline-flex rounded-full border px-1.5 py-0 text-[10px] font-medium
                         ${CATEGORY_COLORS[s.category]}`}>
                         {s.word_count}w
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                    <p className="text-[11px] line-clamp-2 leading-relaxed" style={{ color: 'var(--text-dim)' }}>
                       {s.content.slice(0, 120)}{s.content.length > 120 ? '…' : ''}
                     </p>
                   </button>
@@ -754,18 +868,34 @@ function AiDraftModal({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+      <div
+        className="rounded-2xl w-full max-w-sm"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-violet-500" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-4 h-4" style={{ color: '#a78bfa' }} viewBox="0 0 24 24" fill="currentColor">
               <path d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456Z" />
             </svg>
-            <h2 className="text-sm font-semibold text-slate-900">AI Draft</h2>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>AI Draft</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -773,35 +903,51 @@ function AiDraftModal({
           </button>
         </div>
         <div className="px-5 py-4 space-y-3">
-          <p className="text-xs text-slate-500">This section already has content. What would you like to do?</p>
+          <p className="text-xs" style={{ color: 'var(--text-dim)' }}>This section already has content. What would you like to do?</p>
           <button
             onClick={onGenerate}
-            className="w-full flex items-start gap-3 rounded-xl border border-slate-200 px-4 py-3
-              hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+            className="w-full flex items-start gap-3 rounded-xl px-4 py-3 transition-colors text-left"
+            style={{ border: '1px solid var(--border)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139,92,246,0.08)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(139,92,246,0.3)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = ''
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+            }}
           >
-            <svg className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
+            <svg className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#a78bfa' }} fill="none" viewBox="0 0 24 24"
               stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
             </svg>
             <div>
-              <p className="text-xs font-semibold text-slate-800">Generate new draft</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Replace current content with a fresh AI-generated draft</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Generate new draft</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-dim)' }}>Replace current content with a fresh AI-generated draft</p>
             </div>
           </button>
           <button
             onClick={onImprove}
-            className="w-full flex items-start gap-3 rounded-xl border border-slate-200 px-4 py-3
-              hover:border-violet-300 hover:bg-violet-50 transition-colors text-left"
+            className="w-full flex items-start gap-3 rounded-xl px-4 py-3 transition-colors text-left"
+            style={{ border: '1px solid var(--border)' }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139,92,246,0.08)'
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(139,92,246,0.3)'
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLElement).style.backgroundColor = ''
+              ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+            }}
           >
-            <svg className="w-4 h-4 text-violet-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24"
+            <svg className="w-4 h-4 mt-0.5 shrink-0" style={{ color: '#a78bfa' }} fill="none" viewBox="0 0 24 24"
               stroke="currentColor" strokeWidth={1.75}>
               <path strokeLinecap="round" strokeLinejoin="round"
                 d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z" />
             </svg>
             <div>
-              <p className="text-xs font-semibold text-slate-800">Improve existing draft</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">Rewrite current content to be more compelling and specific</p>
+              <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>Improve existing draft</p>
+              <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-dim)' }}>Rewrite current content to be more compelling and specific</p>
             </div>
           </button>
         </div>
@@ -815,9 +961,9 @@ function GrantListSkeleton() {
     <ul className="py-1">
       {Array.from({ length: 5 }).map((_, i) => (
         <li key={i} className="px-4 py-3 space-y-1.5 animate-pulse">
-          <div className="h-3 bg-slate-200 rounded w-4/5" />
-          <div className="h-2.5 bg-slate-100 rounded w-3/5" />
-          <div className="h-4 bg-slate-100 rounded-full w-16 mt-1" />
+          <div className="h-3 rounded w-4/5" style={{ backgroundColor: 'var(--surface-3)' }} />
+          <div className="h-2.5 rounded w-3/5" style={{ backgroundColor: 'var(--surface-2)' }} />
+          <div className="h-4 rounded-full w-16 mt-1" style={{ backgroundColor: 'var(--surface-2)' }} />
         </li>
       ))}
     </ul>

@@ -118,7 +118,6 @@ export default function OrganizationPage() {
 
     const supabase = createClient()
 
-    // Explicit payload — only columns that exist on organization_profiles
     const profilePayload = {
       org_type:              form.org_type              ?? null,
       sovereignty_status:    form.sovereignty_status    ?? null,
@@ -146,7 +145,6 @@ export default function OrganizationPage() {
 
     console.log('[org save] profilePayload →', profilePayload)
 
-    // Save org name to organizations table (separate from profiles)
     if (orgName.trim()) {
       const { error: nameErr } = await supabase
         .from('organizations')
@@ -155,7 +153,6 @@ export default function OrganizationPage() {
       if (nameErr) console.warn('[org save] org name update error:', nameErr.message)
     }
 
-    // Upsert organization_profiles
     const { data: saved, error, status, statusText } = org?.id
       ? await supabase
           .from('organization_profiles')
@@ -176,7 +173,6 @@ export default function OrganizationPage() {
       showToast('error', 'Save was blocked — check Supabase RLS policies for organization_profiles.')
     } else {
       showToast('success', 'Profile saved successfully.')
-      // Recalculate fit scores for all pipeline grants in the background
       recalculateOrgScores(supabase, organizationId).catch(console.error)
     }
   }
@@ -185,7 +181,7 @@ export default function OrganizationPage() {
     return (
       <>
         <PageHeader title="Organization" subtitle="Manage your organisation profile" />
-        <div className="p-6 flex items-center gap-2 text-sm text-slate-400">
+        <div className="p-6 flex items-center gap-2 text-sm" style={{ color: 'var(--text-dim)' }}>
           <Spinner /> Loading profile…
         </div>
       </>
@@ -407,7 +403,7 @@ export default function OrganizationPage() {
 
           {/* ── Save ─────────────────────────────────────── */}
           <div className="flex items-center justify-between pt-2 pb-8">
-            <p className="text-xs text-slate-400">
+            <p className="text-xs" style={{ color: 'var(--text-dim)' }}>
               {org?.updated_at
                 ? `Last saved ${new Date(org.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
                 : 'Not yet saved'}
@@ -415,8 +411,8 @@ export default function OrganizationPage() {
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60 transition-opacity"
-              style={{ backgroundColor: 'var(--gold)' }}
+              className="inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold disabled:opacity-60 transition-opacity btn-scale"
+              style={{ backgroundColor: 'var(--gold)', color: '#0C0C0E' }}
             >
               {saving && <Spinner />}
               {saving ? 'Saving…' : 'Save changes'}
@@ -436,8 +432,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div>
       <h2
-        className="text-sm font-semibold text-slate-900 uppercase tracking-wide pb-3 mb-4 border-b"
-        style={{ borderColor: 'var(--surface-border)' }}
+        className="text-xs font-semibold uppercase tracking-widest pb-3 mb-4"
+        style={{ color: 'var(--text-dim)', borderBottom: '1px solid var(--border)' }}
         dangerouslySetInnerHTML={{ __html: title }}
       />
       {children}
@@ -456,19 +452,26 @@ function Field({
 }) {
   return (
     <div className={span === 2 ? 'md:col-span-2' : ''}>
-      <label className="block text-sm font-medium text-slate-700 mb-1">
+      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
         {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
+        {required && <span className="ml-0.5" style={{ color: 'var(--danger)' }}>*</span>}
       </label>
       {children}
-      {hint && <p className="mt-1 text-xs text-slate-400">{hint}</p>}
+      {hint && <p className="mt-1 text-xs" style={{ color: 'var(--text-dim)' }}>{hint}</p>}
     </div>
   )
 }
 
+const inputStyle = {
+  backgroundColor: 'var(--surface-2)',
+  border: '1px solid var(--border)',
+  color: 'var(--text-primary)',
+  '--tw-ring-color': 'var(--gold)',
+} as React.CSSProperties
+
 const inputClass =
-  'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 ' +
-  'focus:outline-none focus:ring-2 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed'
+  'w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent ' +
+  'disabled:opacity-40 disabled:cursor-not-allowed'
 
 function Input({
   value, onChange, type = 'text', placeholder, disabled,
@@ -487,7 +490,7 @@ function Input({
       placeholder={placeholder}
       disabled={disabled}
       className={inputClass}
-      style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+      style={inputStyle}
     />
   )
 }
@@ -509,6 +512,7 @@ function Textarea({
       rows={rows}
       disabled={disabled}
       className={`${inputClass} resize-y`}
+      style={inputStyle}
     />
   )
 }
@@ -525,6 +529,7 @@ function Select<T extends string>({
       value={value}
       onChange={e => onChange(e.target.value)}
       className={inputClass}
+      style={inputStyle}
     >
       <option value="">— Select —</option>
       {options.map(o => (
@@ -563,8 +568,12 @@ function TagInput({
 
   return (
     <div
-      className="min-h-[42px] w-full rounded-lg border border-slate-300 bg-white px-2 py-1.5 flex flex-wrap gap-1.5 cursor-text focus-within:ring-2 focus-within:border-transparent"
-      style={{ '--tw-ring-color': 'var(--gold)' } as React.CSSProperties}
+      className="min-h-[42px] w-full rounded-lg px-2 py-1.5 flex flex-wrap gap-1.5 cursor-text focus-within:ring-2 focus-within:border-transparent"
+      style={{
+        backgroundColor: 'var(--surface-2)',
+        border: '1px solid var(--border)',
+        '--tw-ring-color': 'var(--gold)',
+      } as React.CSSProperties}
       onClick={() => inputRef.current?.focus()}
     >
       {tags.map(tag => (
@@ -595,7 +604,8 @@ function TagInput({
         onKeyDown={handleKey}
         onBlur={() => { if (input.trim()) addTag(input) }}
         placeholder={tags.length === 0 ? placeholder : ''}
-        className="flex-1 min-w-[120px] bg-transparent text-sm text-slate-900 placeholder:text-slate-400 outline-none py-0.5 px-1"
+        className="flex-1 min-w-[120px] bg-transparent text-sm outline-none py-0.5 px-1"
+        style={{ color: 'var(--text-primary)' }}
       />
     </div>
   )
@@ -605,8 +615,13 @@ function ToastNotification({ toast }: { toast: NonNullable<Toast> }) {
   const isSuccess = toast.type === 'success'
   return (
     <div
-      className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-xl px-4 py-3 shadow-lg text-sm font-medium text-white animate-in slide-in-from-bottom-2 duration-200"
-      style={{ backgroundColor: isSuccess ? '#16a34a' : '#dc2626', minWidth: '260px' }}
+      className="fixed bottom-5 right-5 z-50 flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-white"
+      style={{
+        backgroundColor: isSuccess ? 'var(--success)' : 'var(--danger)',
+        border: `1px solid ${isSuccess ? 'var(--success-border)' : 'var(--danger-border)'}`,
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+        minWidth: '260px',
+      }}
       role="alert"
     >
       {isSuccess ? (
