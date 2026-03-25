@@ -296,7 +296,6 @@ function GrantsPageContent() {
   const [recalculating,   setRecalculating]   = useState(false)
   const [deleting,        setDeleting]        = useState(false)
   const [confirmDelete,   setConfirmDelete]   = useState<
-    | { type: 'single'; id: string; name: string }
     | { type: 'bulk'; ids: string[]; count: number }
     | null
   >(null)
@@ -393,12 +392,7 @@ function GrantsPageContent() {
     setRecalculating(false)
   }
 
-  const handleDeleteConfirm = async () => {
-    if (!confirmDelete) return
-    setDeleting(true)
-
-    const ids = confirmDelete.type === 'single' ? [confirmDelete.id] : confirmDelete.ids
-
+  const deleteGrants = async (ids: string[]) => {
     try {
       const res = await fetch('/api/grants/delete', {
         method: 'POST',
@@ -408,8 +402,6 @@ function GrantsPageContent() {
       const json = await res.json()
       if (!res.ok) {
         toast(json.error ?? 'Delete failed', 'error')
-        setDeleting(false)
-        setConfirmDelete(null)
         return
       }
       const n = json.deleted as number
@@ -418,7 +410,16 @@ function GrantsPageContent() {
     } catch {
       toast('Delete failed — network error', 'error')
     }
+  }
 
+  const handleSingleDelete = async (id: string) => {
+    await deleteGrants([id])
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return
+    setDeleting(true)
+    await deleteGrants(confirmDelete.ids)
     setConfirmDelete(null)
     setDeleting(false)
   }
@@ -479,16 +480,8 @@ function GrantsPageContent() {
     <>
       {confirmDelete && (
         <ConfirmDialog
-          title={
-            confirmDelete.type === 'single'
-              ? `Delete "${confirmDelete.name}"?`
-              : `Delete ${confirmDelete.count} grant${confirmDelete.count !== 1 ? 's' : ''}?`
-          }
-          message={
-            confirmDelete.type === 'single'
-              ? 'This will also remove its pipeline status, match scores, and any drafts.'
-              : 'This cannot be undone.'
-          }
+          title={`Delete ${confirmDelete.count} grant${confirmDelete.count !== 1 ? 's' : ''}?`}
+          message="This cannot be undone."
           confirmLabel={deleting ? 'Deleting…' : 'Delete'}
           onConfirm={handleDeleteConfirm}
           onCancel={() => !deleting && setConfirmDelete(null)}
@@ -778,7 +771,7 @@ function GrantsPageContent() {
            : <GrantsTable
                grants={filtered}
                onStatusChange={updateStatus}
-               onDeleteRequest={(id, name) => setConfirmDelete({ type: 'single', id, name })}
+               onSingleDelete={handleSingleDelete}
                onBulkDeleteRequest={(ids) => setConfirmDelete({ type: 'bulk', ids, count: ids.length })}
              />}
       </div>
@@ -817,12 +810,12 @@ function TrashIcon() {
 function GrantsTable({
   grants,
   onStatusChange,
-  onDeleteRequest,
+  onSingleDelete,
   onBulkDeleteRequest,
 }: {
   grants:               GrantsFullRow[]
   onStatusChange:       (id: string, status: string) => void
-  onDeleteRequest:      (id: string, name: string) => void
+  onSingleDelete:       (id: string) => void
   onBulkDeleteRequest:  (ids: string[]) => void
 }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -830,8 +823,9 @@ function GrantsTable({
   // Clear selection after the grants list changes (post-delete refresh)
   useEffect(() => { setSelectedIds(new Set()) }, [grants])
 
-  const allSelected  = grants.length > 0 && grants.every(g => selectedIds.has(g.id))
-  const someSelected = selectedIds.size > 0
+  const allSelected   = grants.length > 0 && grants.every(g => selectedIds.has(g.id))
+  const someSelected  = selectedIds.size > 0
+  const multiSelected = selectedIds.size > 1
 
   function toggleAll() {
     setSelectedIds(allSelected ? new Set() : new Set(grants.map(g => g.id)))
@@ -846,34 +840,7 @@ function GrantsTable({
   }
 
   return (
-    <>
-      {/* Bulk action bar — fixed floating bar at bottom of viewport */}
-      {someSelected && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3
-          rounded-2xl border border-slate-200 bg-white shadow-xl px-5 py-3">
-          <span className="text-xs font-medium text-slate-600">
-            {selectedIds.size} selected
-          </span>
-          <button
-            type="button"
-            onClick={() => onBulkDeleteRequest([...selectedIds])}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700
-              px-4 py-2 text-xs font-semibold text-white transition-colors"
-          >
-            <TrashIcon />
-            Delete ({selectedIds.size})
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedIds(new Set())}
-            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      )}
-
-      <div className="overflow-x-auto">
+    <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 sticky top-0 z-10">
@@ -887,12 +854,25 @@ function GrantsTable({
                 style={{ accentColor: 'var(--gold)' }}
               />
             </th>
-            {['Grant', 'Amount', 'Deadline', 'Eligibility', 'Effort', 'Fit', 'Status', ''].map(h => (
+            {['Grant', 'Amount', 'Deadline', 'Eligibility', 'Effort', 'Fit', 'Status'].map(h => (
               <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide
                 text-slate-500 whitespace-nowrap bg-slate-50">
                 {h}
               </th>
             ))}
+            <th className="px-4 py-3 bg-slate-50 text-right">
+              {multiSelected && (
+                <button
+                  type="button"
+                  onClick={() => onBulkDeleteRequest([...selectedIds])}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700
+                    px-3 py-1 text-xs font-semibold text-white transition-colors"
+                >
+                  <TrashIcon />
+                  Delete ({selectedIds.size})
+                </button>
+              )}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
@@ -903,13 +883,12 @@ function GrantsTable({
               onStatusChange={onStatusChange}
               checked={selectedIds.has(g.id)}
               onToggle={() => toggleOne(g.id)}
-              onDeleteRequest={onDeleteRequest}
+              onDeleteConfirm={onSingleDelete}
             />
           ))}
         </tbody>
       </table>
-      </div>
-    </>
+    </div>
   )
 }
 
@@ -918,14 +897,15 @@ function GrantRow({
   onStatusChange,
   checked,
   onToggle,
-  onDeleteRequest,
+  onDeleteConfirm,
 }: {
   grant:           GrantsFullRow
   onStatusChange:  (id: string, status: string) => void
   checked:         boolean
   onToggle:        () => void
-  onDeleteRequest: (id: string, name: string) => void
+  onDeleteConfirm: (id: string) => void
 }) {
+  const [showPopover, setShowPopover] = useState(false)
   const days = daysUntil(g.deadline)
   const isUrgent = days !== null && days <= 14 && days >= 0
 
@@ -934,16 +914,53 @@ function GrantRow({
       ${isUrgent ? 'bg-red-50/30' : ''}
       ${checked  ? 'bg-amber-50/40' : ''}`}>
 
-      {/* Checkbox */}
+      {/* Checkbox + inline trash */}
       <td className="px-3 py-3">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={onToggle}
-          onClick={e => e.stopPropagation()}
-          className="w-4 h-4 rounded border-slate-300 cursor-pointer"
-          style={{ accentColor: 'var(--gold)' }}
-        />
+        <div className="flex items-center gap-1.5">
+          <input
+            type="checkbox"
+            checked={checked}
+            onChange={onToggle}
+            onClick={e => e.stopPropagation()}
+            className="w-4 h-4 rounded border-slate-300 cursor-pointer"
+            style={{ accentColor: 'var(--gold)' }}
+          />
+          {checked && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowPopover(p => !p)}
+                className="p-1 rounded text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors"
+                title="Delete grant"
+              >
+                <TrashIcon />
+              </button>
+              {showPopover && (
+                <div className="absolute left-0 top-full mt-1.5 z-30 w-48 rounded-xl border border-slate-200
+                  bg-white shadow-lg p-3 flex flex-col gap-2">
+                  <p className="text-xs font-medium text-slate-700">Delete this grant?</p>
+                  <div className="flex items-center gap-2 justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowPopover(false)}
+                      className="text-xs text-slate-500 hover:text-slate-700 transition-colors px-2 py-1"
+                    >
+                      No
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowPopover(false); onDeleteConfirm(g.id) }}
+                      className="rounded-lg bg-red-600 hover:bg-red-700 px-3 py-1 text-xs font-semibold
+                        text-white transition-colors"
+                    >
+                      Yes
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </td>
 
       {/* Grant name + funder */}
@@ -1036,9 +1053,9 @@ function GrantRow({
         </select>
       </td>
 
-      {/* View + Delete */}
+      {/* View */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
           <Link
             href={`/grants/${g.id}`}
             className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600
@@ -1046,15 +1063,6 @@ function GrantRow({
           >
             View
           </Link>
-          <button
-            type="button"
-            onClick={() => onDeleteRequest(g.id, g.name)}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50
-              border border-transparent hover:border-red-200 transition-colors"
-            title="Delete grant"
-          >
-            <TrashIcon />
-          </button>
         </div>
       </td>
     </tr>
