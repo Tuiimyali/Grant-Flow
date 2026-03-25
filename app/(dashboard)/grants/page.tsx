@@ -294,6 +294,12 @@ function GrantsPageContent() {
   const [showAddModal,    setShowAddModal]    = useState(false)
   const [showCsvModal,    setShowCsvModal]    = useState(false)
   const [recalculating,   setRecalculating]   = useState(false)
+  const [deleting,        setDeleting]        = useState(false)
+  const [confirmDelete,   setConfirmDelete]   = useState<
+    | { type: 'single'; id: string; name: string }
+    | { type: 'bulk'; ids: string[]; count: number }
+    | null
+  >(null)
 
   const { grants, loading, error, updateStatus, refresh } = useGrants()
 
@@ -387,6 +393,36 @@ function GrantsPageContent() {
     setRecalculating(false)
   }
 
+  const handleDeleteConfirm = async () => {
+    if (!confirmDelete) return
+    setDeleting(true)
+
+    const ids = confirmDelete.type === 'single' ? [confirmDelete.id] : confirmDelete.ids
+
+    try {
+      const res = await fetch('/api/grants/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast(json.error ?? 'Delete failed', 'error')
+        setDeleting(false)
+        setConfirmDelete(null)
+        return
+      }
+      const n = json.deleted as number
+      toast(n === 1 ? 'Grant deleted' : `${n} grants deleted`, 'success')
+      refresh()
+    } catch {
+      toast('Delete failed — network error', 'error')
+    }
+
+    setConfirmDelete(null)
+    setDeleting(false)
+  }
+
   // Collect unique eligibility types from all loaded grants
   const allEligTypes = useMemo(() => {
     const set = new Set<string>()
@@ -441,6 +477,25 @@ function GrantsPageContent() {
 
   return (
     <>
+      {confirmDelete && (
+        <ConfirmDialog
+          title={
+            confirmDelete.type === 'single'
+              ? `Delete "${confirmDelete.name}"?`
+              : `Delete ${confirmDelete.count} grant${confirmDelete.count !== 1 ? 's' : ''}?`
+          }
+          message={
+            confirmDelete.type === 'single'
+              ? 'This will also remove its pipeline status, match scores, and any drafts.'
+              : 'This cannot be undone.'
+          }
+          confirmLabel={deleting ? 'Deleting…' : 'Delete'}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => !deleting && setConfirmDelete(null)}
+          disabled={deleting}
+        />
+      )}
+
       <AddGrantModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -720,7 +775,12 @@ function GrantsPageContent() {
          error       ? <ErrorState message={error} onRetry={refresh} /> :
          filtered.length === 0
            ? <EmptyState hasFilters={hasAnyFilter} onAdd={() => setShowAddModal(true)} />
-           : <GrantsTable grants={filtered} onStatusChange={updateStatus} />}
+           : <GrantsTable
+               grants={filtered}
+               onStatusChange={updateStatus}
+               onDeleteRequest={(id, name) => setConfirmDelete({ type: 'single', id, name })}
+               onBulkDeleteRequest={(ids) => setConfirmDelete({ type: 'bulk', ids, count: ids.length })}
+             />}
       </div>
     </>
   )
@@ -736,20 +796,97 @@ export default function GrantsPage() {
   )
 }
 
+/* ── Trash icon ─────────────────────────────────────────────── */
+
+function TrashIcon() {
+  return (
+    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24"
+      stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round"
+        d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16
+           19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456
+           0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0
+           0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32
+           0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+    </svg>
+  )
+}
+
 /* ── Table ──────────────────────────────────────────────────── */
 
 function GrantsTable({
   grants,
   onStatusChange,
+  onDeleteRequest,
+  onBulkDeleteRequest,
 }: {
-  grants: GrantsFullRow[]
-  onStatusChange: (id: string, status: string) => void
+  grants:               GrantsFullRow[]
+  onStatusChange:       (id: string, status: string) => void
+  onDeleteRequest:      (id: string, name: string) => void
+  onBulkDeleteRequest:  (ids: string[]) => void
 }) {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+
+  // Clear selection after the grants list changes (post-delete refresh)
+  useEffect(() => { setSelectedIds(new Set()) }, [grants])
+
+  const allSelected  = grants.length > 0 && grants.every(g => selectedIds.has(g.id))
+  const someSelected = selectedIds.size > 0
+
+  function toggleAll() {
+    setSelectedIds(allSelected ? new Set() : new Set(grants.map(g => g.id)))
+  }
+
+  function toggleOne(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
   return (
-    <div className="overflow-x-auto">
+    <>
+      {/* Bulk action bar — fixed floating bar at bottom of viewport */}
+      {someSelected && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3
+          rounded-2xl border border-slate-200 bg-white shadow-xl px-5 py-3">
+          <span className="text-xs font-medium text-slate-600">
+            {selectedIds.size} selected
+          </span>
+          <button
+            type="button"
+            onClick={() => onBulkDeleteRequest([...selectedIds])}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 hover:bg-red-700
+              px-4 py-2 text-xs font-semibold text-white transition-colors"
+          >
+            <TrashIcon />
+            Delete ({selectedIds.size})
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedIds(new Set())}
+            className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
+      <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50 sticky top-0 z-10">
+            <th className="px-3 py-3 bg-slate-50 w-9">
+              <input
+                type="checkbox"
+                checked={allSelected}
+                ref={el => { if (el) el.indeterminate = someSelected && !allSelected }}
+                onChange={toggleAll}
+                className="w-4 h-4 rounded border-slate-300 cursor-pointer"
+                style={{ accentColor: 'var(--gold)' }}
+              />
+            </th>
             {['Grant', 'Amount', 'Deadline', 'Eligibility', 'Effort', 'Fit', 'Status', ''].map(h => (
               <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide
                 text-slate-500 whitespace-nowrap bg-slate-50">
@@ -760,26 +897,54 @@ function GrantsTable({
         </thead>
         <tbody className="divide-y divide-slate-100 bg-white">
           {grants.map(g => (
-            <GrantRow key={g.id} grant={g} onStatusChange={onStatusChange} />
+            <GrantRow
+              key={g.id}
+              grant={g}
+              onStatusChange={onStatusChange}
+              checked={selectedIds.has(g.id)}
+              onToggle={() => toggleOne(g.id)}
+              onDeleteRequest={onDeleteRequest}
+            />
           ))}
         </tbody>
       </table>
-    </div>
+      </div>
+    </>
   )
 }
 
 function GrantRow({
   grant: g,
   onStatusChange,
+  checked,
+  onToggle,
+  onDeleteRequest,
 }: {
-  grant: GrantsFullRow
-  onStatusChange: (id: string, status: string) => void
+  grant:           GrantsFullRow
+  onStatusChange:  (id: string, status: string) => void
+  checked:         boolean
+  onToggle:        () => void
+  onDeleteRequest: (id: string, name: string) => void
 }) {
   const days = daysUntil(g.deadline)
   const isUrgent = days !== null && days <= 14 && days >= 0
 
   return (
-    <tr className={`group hover:bg-slate-50/80 transition-colors ${isUrgent ? 'bg-red-50/30' : ''}`}>
+    <tr className={`group hover:bg-slate-50/80 transition-colors
+      ${isUrgent ? 'bg-red-50/30' : ''}
+      ${checked  ? 'bg-amber-50/40' : ''}`}>
+
+      {/* Checkbox */}
+      <td className="px-3 py-3">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onToggle}
+          onClick={e => e.stopPropagation()}
+          className="w-4 h-4 rounded border-slate-300 cursor-pointer"
+          style={{ accentColor: 'var(--gold)' }}
+        />
+      </td>
 
       {/* Grant name + funder */}
       <td className="px-4 py-3 max-w-[260px]">
@@ -871,15 +1036,26 @@ function GrantRow({
         </select>
       </td>
 
-      {/* View link */}
+      {/* View + Delete */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <Link
-          href={`/grants/${g.id}`}
-          className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600
-            hover:border-slate-400 hover:text-slate-900 opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          View
-        </Link>
+        <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Link
+            href={`/grants/${g.id}`}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600
+              hover:border-slate-400 hover:text-slate-900 transition-colors"
+          >
+            View
+          </Link>
+          <button
+            type="button"
+            onClick={() => onDeleteRequest(g.id, g.name)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50
+              border border-transparent hover:border-red-200 transition-colors"
+            title="Delete grant"
+          >
+            <TrashIcon />
+          </button>
+        </div>
       </td>
     </tr>
   )
@@ -898,6 +1074,54 @@ function CompactFitBadge({ score }: { score: number | null | undefined }) {
     <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold tabular-nums ${cls}`}>
       {score}%
     </span>
+  )
+}
+
+/* ── Confirm dialog ─────────────────────────────────────────── */
+
+function ConfirmDialog({
+  title,
+  message,
+  confirmLabel,
+  onConfirm,
+  onCancel,
+  disabled,
+}: {
+  title:         string
+  message:       string
+  confirmLabel:  string
+  onConfirm:     () => void
+  onCancel:      () => void
+  disabled?:     boolean
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+      <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+        <h2 className="text-base font-semibold text-slate-900 mb-2">{title}</h2>
+        <p className="text-sm text-slate-500 leading-relaxed mb-5">{message}</p>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={disabled}
+            className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium
+              text-slate-700 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={disabled}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white
+              hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -943,6 +1167,7 @@ function LoadingSkeleton() {
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-slate-200 bg-slate-50">
+            <th className="px-3 py-3 w-9" />
             {['Grant', 'Amount', 'Deadline', 'Eligibility', 'Effort', 'Fit', 'Status', ''].map(h => (
               <th key={h} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {h}
@@ -953,6 +1178,7 @@ function LoadingSkeleton() {
         <tbody className="divide-y divide-slate-100">
           {Array.from({ length: 6 }).map((_, i) => (
             <tr key={i} className="bg-white">
+              <td className="px-3 py-3 w-9" />
               <td className="px-4 py-3">
                 <div className="h-4 bg-slate-200 rounded animate-pulse w-40 mb-1.5" />
                 <div className="h-3 bg-slate-100 rounded animate-pulse w-28" />
