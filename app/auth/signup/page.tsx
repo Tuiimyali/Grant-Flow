@@ -11,11 +11,23 @@ export default function SignUpPage() {
     return (
       <div className="text-center py-4">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
-          <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+          <svg
+            className="w-6 h-6 text-blue-600"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
+            />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-2">Check your email</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          Check your email
+        </h2>
         <p className="text-sm text-gray-500">{state.message}</p>
         <Link
           href="/auth/signin"
@@ -29,8 +41,12 @@ export default function SignUpPage() {
 
   return (
     <>
-      <h2 className="text-xl font-semibold text-gray-900 mb-1">Create your workspace</h2>
-      <p className="text-sm text-gray-500 mb-6">Set up your organisation to get started.</p>
+      <h2 className="text-xl font-semibold text-gray-900 mb-1">
+        Create your workspace
+      </h2>
+      <p className="text-sm text-gray-500 mb-6">
+        Set up your organisation to get started.
+      </p>
 
       <form action={formAction} className="space-y-4">
         {state.error && (
@@ -40,7 +56,10 @@ export default function SignUpPage() {
         )}
 
         <div>
-          <label htmlFor="orgName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="orgName"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Organisation name
           </label>
           <input
@@ -55,7 +74,10 @@ export default function SignUpPage() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Work email
           </label>
           <input
@@ -70,7 +92,10 @@ export default function SignUpPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Password
           </label>
           <input
@@ -97,7 +122,10 @@ export default function SignUpPage() {
 
       <p className="mt-6 text-center text-sm text-gray-500">
         Already have an account?{' '}
-        <Link href="/auth/signin" className="font-medium text-blue-600 hover:underline">
+        <Link
+          href="/auth/signin"
+          className="font-medium text-blue-600 hover:underline"
+        >
           Sign in
         </Link>
       </p>

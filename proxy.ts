@@ -8,7 +8,9 @@ export async function proxy(request: NextRequest) {
   const { response, user } = await updateSession(request)
 
   const { pathname } = request.nextUrl
-  const isPublic = PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith('/auth/'))
+  const isPublic = PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith('/auth/')
+  )
 
   // Redirect unauthenticated users to sign in
   if (!user && !isPublic) {

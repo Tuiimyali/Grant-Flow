@@ -1,4 +1,8 @@
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -10,13 +14,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <h1 className="text-2xl font-semibold text-white tracking-tight">
             Grant Intelligence Workspace
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Water resource grant management</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Water resource grant management
+          </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          {children}
-        </div>
+        <div className="bg-white rounded-2xl shadow-2xl p-8">{children}</div>
 
         <p className="text-center text-xs text-slate-500 mt-6">
           © {new Date().getFullYear()} Grant Intelligence Workspace

@@ -35,22 +35,11 @@ export type AnnualBudgetRange =
   | '1m_5m'
   | 'over_5m'
 
-export type StaffSize =
-  | 'solo'
-  | '1_5'
-  | '6_15'
-  | '16_50'
-  | 'over_50'
+export type StaffSize = 'solo' | '1_5' | '6_15' | '16_50' | 'over_50'
 
-export type HasGrantWriter =
-  | 'yes'
-  | 'no'
-  | 'contractor'
+export type HasGrantWriter = 'yes' | 'no' | 'contractor'
 
-export type SamRegistered =
-  | 'yes'
-  | 'no'
-  | 'in_progress'
+export type SamRegistered = 'yes' | 'no' | 'in_progress'
 
 export type SingleAuditStatus =
   | 'not_required'
@@ -102,7 +91,9 @@ export interface OrganizationProfile {
   populations_served: string[] | null
 }
 
-export type OrganizationProfileUpdate = Partial<Omit<OrganizationProfile, 'id' | 'organization_id' | 'created_at'>>
+export type OrganizationProfileUpdate = Partial<
+  Omit<OrganizationProfile, 'id' | 'organization_id' | 'created_at'>
+>
 
 /* ── Shared sub-types ───────────────────────────────────────── */
 export interface GrantSection {
@@ -133,20 +124,20 @@ export interface GrantDetail {
 
 /* ── grant_matches table ────────────────────────────────────── */
 export interface FitBreakdown {
-  eligibility: number  // 0-100
-  mission:     number
-  budget:      number
-  capacity:    number
-  deadline:    number
-  geographic:  number
+  eligibility: number // 0-100
+  mission: number
+  budget: number
+  capacity: number
+  deadline: number
+  geographic: number
 }
 
 export interface GrantMatchRow {
-  grant_id:        string
+  grant_id: string
   organization_id: string
-  fit_score:       number | null
+  fit_score: number | null
   score_breakdown: FitBreakdown | null
-  updated_at:      string
+  updated_at: string
 }
 
 /* ── drafts table ───────────────────────────────────────────── */
@@ -278,7 +269,7 @@ export interface Database {
           p_sections?: { title: string; page_limit: number | null }[] | null
           p_attachments?: { name: string }[] | null
         }
-        Returns: string  // new grant id
+        Returns: string // new grant id
       }
     }
     Enums: Record<string, string>

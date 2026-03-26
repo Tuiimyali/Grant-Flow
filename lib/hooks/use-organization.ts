@@ -13,11 +13,11 @@ export interface UseOrganizationResult {
 }
 
 export function useOrganization(): UseOrganizationResult {
-  const [data, setData]                     = useState<OrganizationProfile | null>(null)
+  const [data, setData] = useState<OrganizationProfile | null>(null)
   const [organizationId, setOrganizationId] = useState<string | null>(null)
-  const [orgName, setOrgName]               = useState<string | null>(null)
-  const [loading, setLoading]               = useState(true)
-  const [error, setError]                   = useState<string | null>(null)
+  const [orgName, setOrgName] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()

@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/page-header'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from '@/lib/toast'
-import { useDeadlineAlerts, type NotificationPrefs } from '@/lib/contexts/deadline-alerts-context'
+import {
+  useDeadlineAlerts,
+  type NotificationPrefs,
+} from '@/lib/contexts/deadline-alerts-context'
 
 /* ── Nav sections ────────────────────────────────────────────── */
 
@@ -19,32 +22,44 @@ type Section =
   | 'export'
 
 interface NavItem {
-  id:      Section
-  label:   string
-  icon:    React.ReactNode
-  soon?:   boolean
+  id: Section
+  label: string
+  icon: React.ReactNode
+  soon?: boolean
 }
 
 const NAV_ITEMS: NavItem[] = [
   {
-    id: 'account', label: 'Account',
+    id: 'account',
+    label: 'Account',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-        <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z" clipRule="evenodd" />
+        <path
+          fillRule="evenodd"
+          d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-5.5-2.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0ZM10 12a5.99 5.99 0 0 0-4.793 2.39A6.483 6.483 0 0 0 10 16.5a6.483 6.483 0 0 0 4.793-2.11A5.99 5.99 0 0 0 10 12Z"
+          clipRule="evenodd"
+        />
       </svg>
     ),
   },
   {
-    id: 'organization', label: 'Organization',
+    id: 'organization',
+    label: 'Organization',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-        <path fillRule="evenodd" d="M1 2.75A.75.75 0 0 1 1.75 2h10.5a.75.75 0 0 1 0 1.5H12v13.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 1-.75.75H3a.75.75 0 0 1-.75-.75V3.5h-.5A.75.75 0 0 1 1 2.75ZM4 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM4 9.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Z" clipRule="evenodd" />
+        <path
+          fillRule="evenodd"
+          d="M1 2.75A.75.75 0 0 1 1.75 2h10.5a.75.75 0 0 1 0 1.5H12v13.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 1-.75.75H3a.75.75 0 0 1-.75-.75V3.5h-.5A.75.75 0 0 1 1 2.75ZM4 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM4 9.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Z"
+          clipRule="evenodd"
+        />
         <path d="M13 2.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-5Z" />
       </svg>
     ),
   },
   {
-    id: 'team', label: 'Team Members', soon: true,
+    id: 'team',
+    label: 'Team Members',
+    soon: true,
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path d="M7 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM14.5 9a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.615 16.428a1.224 1.224 0 0 1-.569-1.175 6.002 6.002 0 0 1 11.908 0c.058.467-.172.92-.57 1.174A9.953 9.953 0 0 1 7 17a9.953 9.953 0 0 1-5.385-1.572ZM14.5 16h-.106c.07-.297.088-.611.048-.933a7.47 7.47 0 0 0-1.588-3.755 4.502 4.502 0 0 1 5.874 2.636.818.818 0 0 1-.36.98A7.465 7.465 0 0 1 14.5 16Z" />
@@ -52,31 +67,50 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
-    id: 'notifications', label: 'Notifications',
+    id: 'notifications',
+    label: 'Notifications',
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-        <path fillRule="evenodd" d="M4 8a6 6 0 1 1 12 0c0 1.887.454 3.665 1.257 5.234a.75.75 0 0 1-.515 1.076 32.91 32.91 0 0 1-3.256.508 3.5 3.5 0 0 1-6.972 0 32.903 32.903 0 0 1-3.256-.508.75.75 0 0 1-.515-1.076A11.448 11.448 0 0 0 4 8Zm6 7c-.655 0-1.305-.02-1.95-.057a2 2 0 0 0 3.9 0c-.645.038-1.295.057-1.95.057Z" clipRule="evenodd" />
+        <path
+          fillRule="evenodd"
+          d="M4 8a6 6 0 1 1 12 0c0 1.887.454 3.665 1.257 5.234a.75.75 0 0 1-.515 1.076 32.91 32.91 0 0 1-3.256.508 3.5 3.5 0 0 1-6.972 0 32.903 32.903 0 0 1-3.256-.508.75.75 0 0 1-.515-1.076A11.448 11.448 0 0 0 4 8Zm6 7c-.655 0-1.305-.02-1.95-.057a2 2 0 0 0 3.9 0c-.645.038-1.295.057-1.95.057Z"
+          clipRule="evenodd"
+        />
       </svg>
     ),
   },
   {
-    id: 'api-keys', label: 'API Keys', soon: true,
+    id: 'api-keys',
+    label: 'API Keys',
+    soon: true,
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-        <path fillRule="evenodd" d="M8 7a5 5 0 1 1 3.61 4.804l-1.903 1.903A1 1 0 0 1 9 14H8v1a1 1 0 0 1-1 1H6v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2a1 1 0 0 1 .293-.707L7.196 10.39A5.002 5.002 0 0 1 8 7Zm5-1a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+        <path
+          fillRule="evenodd"
+          d="M8 7a5 5 0 1 1 3.61 4.804l-1.903 1.903A1 1 0 0 1 9 14H8v1a1 1 0 0 1-1 1H6v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-2a1 1 0 0 1 .293-.707L7.196 10.39A5.002 5.002 0 0 1 8 7Zm5-1a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+          clipRule="evenodd"
+        />
       </svg>
     ),
   },
   {
-    id: 'billing', label: 'Billing', soon: true,
+    id: 'billing',
+    label: 'Billing',
+    soon: true,
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-        <path fillRule="evenodd" d="M2.5 4A1.5 1.5 0 0 0 1 5.5V6h18v-.5A1.5 1.5 0 0 0 17.5 4h-15ZM19 8.5H1v6A1.5 1.5 0 0 0 2.5 16h15a1.5 1.5 0 0 0 1.5-1.5v-6ZM3 13.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75Zm4.75-.75a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 0-1.5h-3.5Z" clipRule="evenodd" />
+        <path
+          fillRule="evenodd"
+          d="M2.5 4A1.5 1.5 0 0 0 1 5.5V6h18v-.5A1.5 1.5 0 0 0 17.5 4h-15ZM19 8.5H1v6A1.5 1.5 0 0 0 2.5 16h15a1.5 1.5 0 0 0 1.5-1.5v-6ZM3 13.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75Zm4.75-.75a.75.75 0 0 0 0 1.5h3.5a.75.75 0 0 0 0-1.5h-3.5Z"
+          clipRule="evenodd"
+        />
       </svg>
     ),
   },
   {
-    id: 'export', label: 'Data Export', soon: true,
+    id: 'export',
+    label: 'Data Export',
+    soon: true,
     icon: (
       <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
         <path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" />
@@ -88,9 +122,19 @@ const NAV_ITEMS: NavItem[] = [
 
 /* ── Shared form primitives ──────────────────────────────────── */
 
-function FieldLabel({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
+function FieldLabel({
+  htmlFor,
+  children,
+}: {
+  htmlFor?: string
+  children: React.ReactNode
+}) {
   return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+    <label
+      htmlFor={htmlFor}
+      className="block text-sm font-medium mb-1.5"
+      style={{ color: 'var(--text-secondary)' }}
+    >
       {children}
     </label>
   )
@@ -113,7 +157,13 @@ function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
-function SaveButton({ loading, label = 'Save changes' }: { loading?: boolean; label?: string }) {
+function SaveButton({
+  loading,
+  label = 'Save changes',
+}: {
+  loading?: boolean
+  label?: string
+}) {
   return (
     <button
       type="submit"
@@ -123,8 +173,19 @@ function SaveButton({ loading, label = 'Save changes' }: { loading?: boolean; la
     >
       {loading && (
         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+          />
         </svg>
       )}
       {label}
@@ -132,8 +193,14 @@ function SaveButton({ loading, label = 'Save changes' }: { loading?: boolean; la
   )
 }
 
-function SectionCard({ title, description, children }: {
-  title: string; description?: string; children: React.ReactNode
+function SectionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: React.ReactNode
 }) {
   return (
     <div
@@ -143,9 +210,21 @@ function SectionCard({ title, description, children }: {
         border: '1px solid var(--border)',
       }}
     >
-      <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--border)' }}>
-        <h2 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
-        {description && <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>{description}</p>}
+      <div
+        className="px-6 py-5"
+        style={{ borderBottom: '1px solid var(--border)' }}
+      >
+        <h2
+          className="text-base font-semibold"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          {title}
+        </h2>
+        {description && (
+          <p className="text-sm mt-0.5" style={{ color: 'var(--text-dim)' }}>
+            {description}
+          </p>
+        )}
       </div>
       <div className="px-6 py-5">{children}</div>
     </div>
@@ -156,24 +235,32 @@ function SectionCard({ title, description, children }: {
 
 function AccountSection() {
   const router = useRouter()
-  const [email, setEmail]         = useState('')
+  const [email, setEmail] = useState('')
   const [displayName, setDisplay] = useState('')
-  const [newPw, setNewPw]         = useState('')
+  const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
-  const [saving, setSaving]       = useState(false)
-  const [savingPw, setSavingPw]   = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [savingPw, setSavingPw] = useState(false)
 
-  const [deleteOpen, setDeleteOpen]       = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
-  const [deleting, setDeleting]           = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then((result: Awaited<ReturnType<ReturnType<typeof createClient>['auth']['getUser']>>) => {
-      if (!result.data.user) return
-      setEmail(result.data.user.email ?? '')
-      setDisplay(result.data.user.user_metadata?.full_name ?? '')
-    })
+    supabase.auth
+      .getUser()
+      .then(
+        (
+          result: Awaited<
+            ReturnType<ReturnType<typeof createClient>['auth']['getUser']>
+          >
+        ) => {
+          if (!result.data.user) return
+          setEmail(result.data.user.email ?? '')
+          setDisplay(result.data.user.user_metadata?.full_name ?? '')
+        }
+      )
   }, [])
 
   async function handleProfileSave(e: React.FormEvent<HTMLFormElement>) {
@@ -185,13 +272,19 @@ function AccountSection() {
     })
     setSaving(false)
     if (error) toast(error.message, 'error')
-    else       toast('Profile updated', 'success')
+    else toast('Profile updated', 'success')
   }
 
   async function handlePasswordSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (newPw !== confirmPw) { toast('Passwords do not match', 'error'); return }
-    if (newPw.length < 8)    { toast('Password must be at least 8 characters', 'error'); return }
+    if (newPw !== confirmPw) {
+      toast('Passwords do not match', 'error')
+      return
+    }
+    if (newPw.length < 8) {
+      toast('Password must be at least 8 characters', 'error')
+      return
+    }
     setSavingPw(true)
     const supabase = createClient()
     const { error } = await supabase.auth.updateUser({ password: newPw })
@@ -200,7 +293,8 @@ function AccountSection() {
       toast(error.message, 'error')
     } else {
       toast('Password updated', 'success')
-      setNewPw(''); setConfirmPw('')
+      setNewPw('')
+      setConfirmPw('')
     }
   }
 
@@ -213,7 +307,11 @@ function AccountSection() {
     const supabase = createClient()
     const { error } = await supabase.rpc('delete_my_account')
     if (error) {
-      toast('Account deletion requested. Our team will process it shortly.', 'info', 6000)
+      toast(
+        'Account deletion requested. Our team will process it shortly.',
+        'info',
+        6000
+      )
       await supabase.auth.signOut()
       router.push('/auth/signin')
       return
@@ -232,7 +330,7 @@ function AccountSection() {
             <TextInput
               id="display-name"
               value={displayName}
-              onChange={e => setDisplay(e.target.value)}
+              onChange={(e) => setDisplay(e.target.value)}
               placeholder="Your name"
             />
           </div>
@@ -245,7 +343,9 @@ function AccountSection() {
               readOnly
               title="Email cannot be changed here"
             />
-            <p className="mt-1.5 text-xs" style={{ color: 'var(--text-dim)' }}>Email changes are not supported at this time.</p>
+            <p className="mt-1.5 text-xs" style={{ color: 'var(--text-dim)' }}>
+              Email changes are not supported at this time.
+            </p>
           </div>
           <div className="pt-1">
             <SaveButton loading={saving} />
@@ -254,7 +354,10 @@ function AccountSection() {
       </SectionCard>
 
       {/* Password */}
-      <SectionCard title="Password" description="Choose a strong password of at least 8 characters.">
+      <SectionCard
+        title="Password"
+        description="Choose a strong password of at least 8 characters."
+      >
         <form onSubmit={handlePasswordSave} className="space-y-4">
           <div>
             <FieldLabel htmlFor="new-pw">New password</FieldLabel>
@@ -262,7 +365,7 @@ function AccountSection() {
               id="new-pw"
               type="password"
               value={newPw}
-              onChange={e => setNewPw(e.target.value)}
+              onChange={(e) => setNewPw(e.target.value)}
               placeholder="Min. 8 characters"
               autoComplete="new-password"
             />
@@ -273,7 +376,7 @@ function AccountSection() {
               id="confirm-pw"
               type="password"
               value={confirmPw}
-              onChange={e => setConfirmPw(e.target.value)}
+              onChange={(e) => setConfirmPw(e.target.value)}
               placeholder="Repeat new password"
               autoComplete="new-password"
             />
@@ -292,15 +395,39 @@ function AccountSection() {
           backgroundColor: 'var(--danger-bg)',
         }}
       >
-        <div className="px-6 py-5" style={{ borderBottom: '1px solid var(--danger-border)' }}>
-          <h2 className="text-base font-semibold" style={{ color: 'var(--danger)' }}>Danger zone</h2>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--danger)', opacity: 0.7 }}>These actions are irreversible.</p>
+        <div
+          className="px-6 py-5"
+          style={{ borderBottom: '1px solid var(--danger-border)' }}
+        >
+          <h2
+            className="text-base font-semibold"
+            style={{ color: 'var(--danger)' }}
+          >
+            Danger zone
+          </h2>
+          <p
+            className="text-sm mt-0.5"
+            style={{ color: 'var(--danger)', opacity: 0.7 }}
+          >
+            These actions are irreversible.
+          </p>
         </div>
-        <div className="px-6 py-5" style={{ backgroundColor: 'var(--surface)' }}>
+        <div
+          className="px-6 py-5"
+          style={{ backgroundColor: 'var(--surface)' }}
+        >
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Delete account</p>
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
+              <p
+                className="text-sm font-medium"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                Delete account
+              </p>
+              <p
+                className="text-xs mt-0.5"
+                style={{ color: 'var(--text-dim)' }}
+              >
                 Permanently delete your account and all associated data.
               </p>
             </div>
@@ -312,8 +439,12 @@ function AccountSection() {
                 color: 'var(--danger)',
                 backgroundColor: 'var(--danger-bg)',
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.8' }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLElement).style.opacity = '0.8'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLElement).style.opacity = '1'
+              }}
             >
               Delete account
             </button>
@@ -323,7 +454,10 @@ function AccountSection() {
 
       {/* Delete confirmation dialog */}
       {deleteOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+        >
           <div
             className="rounded-2xl w-full max-w-md mx-4 p-6"
             style={{
@@ -335,56 +469,97 @@ function AccountSection() {
             <div className="flex items-start gap-4 mb-5">
               <div
                 className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'var(--danger-bg)', border: '1px solid var(--danger-border)' }}
+                style={{
+                  backgroundColor: 'var(--danger-bg)',
+                  border: '1px solid var(--danger-border)',
+                }}
               >
-                <svg className="w-5 h-5" style={{ color: 'var(--danger)' }} fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round"
+                <svg
+                  className="w-5 h-5"
+                  style={{ color: 'var(--danger)' }}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0
                       2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697
-                      16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                      16.126ZM12 15.75h.007v.008H12v-.008Z"
+                  />
                 </svg>
               </div>
               <div>
-                <h3 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>Delete your account?</h3>
-                <p className="text-sm mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                  This will permanently delete your account, all grants, pipeline data, and drafts.
-                  This cannot be undone.
+                <h3
+                  className="text-base font-semibold"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  Delete your account?
+                </h3>
+                <p
+                  className="text-sm mt-1 leading-relaxed"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  This will permanently delete your account, all grants,
+                  pipeline data, and drafts. This cannot be undone.
                 </p>
               </div>
             </div>
 
             <div className="mb-5">
-              <label className="block text-sm font-medium mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                Type <span className="font-mono font-bold" style={{ color: 'var(--danger)' }}>DELETE</span> to confirm
+              <label
+                className="block text-sm font-medium mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Type{' '}
+                <span
+                  className="font-mono font-bold"
+                  style={{ color: 'var(--danger)' }}
+                >
+                  DELETE
+                </span>{' '}
+                to confirm
               </label>
               <input
                 type="text"
                 value={deleteConfirm}
-                onChange={e => setDeleteConfirm(e.target.value)}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
                 placeholder="DELETE"
                 className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 font-mono"
-                style={{
-                  backgroundColor: 'var(--surface-2)',
-                  border: '1px solid var(--border)',
-                  color: 'var(--text-primary)',
-                  '--tw-ring-color': 'var(--danger)',
-                } as React.CSSProperties}
+                style={
+                  {
+                    backgroundColor: 'var(--surface-2)',
+                    border: '1px solid var(--border)',
+                    color: 'var(--text-primary)',
+                    '--tw-ring-color': 'var(--danger)',
+                  } as React.CSSProperties
+                }
                 autoComplete="off"
               />
             </div>
 
             <div className="flex gap-3 justify-end">
               <button
-                onClick={() => { setDeleteOpen(false); setDeleteConfirm('') }}
+                onClick={() => {
+                  setDeleteOpen(false)
+                  setDeleteConfirm('')
+                }}
                 className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
                 style={{
                   backgroundColor: 'var(--surface-2)',
                   border: '1px solid var(--border)',
                   color: 'var(--text-secondary)',
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.color =
+                    'var(--text-primary)'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.color =
+                    'var(--text-secondary)'
+                }}
               >
                 Cancel
               </button>
@@ -393,13 +568,32 @@ function AccountSection() {
                 disabled={deleteConfirm !== 'DELETE' || deleting}
                 className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition-opacity"
                 style={{ backgroundColor: 'var(--danger)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '0.85' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '1' }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.opacity = '0.85'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.opacity = '1'
+                }}
               >
                 {deleting && (
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+                    />
                   </svg>
                 )}
                 Delete account permanently
@@ -415,11 +609,11 @@ function AccountSection() {
 /* ── Organization section ────────────────────────────────────── */
 
 function OrganizationSection() {
-  const [orgId, setOrgId]     = useState<string | null>(null)
+  const [orgId, setOrgId] = useState<string | null>(null)
   const [orgName, setOrgName] = useState('')
   const [original, setOriginal] = useState('')
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving]   = useState(false)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -429,7 +623,10 @@ function OrganizationSection() {
         .select('organization_id')
         .maybeSingle()
 
-      if (!member?.organization_id) { setLoading(false); return }
+      if (!member?.organization_id) {
+        setLoading(false)
+        return
+      }
       setOrgId(member.organization_id)
 
       const { data: org } = await supabase
@@ -438,7 +635,10 @@ function OrganizationSection() {
         .eq('id', member.organization_id)
         .maybeSingle()
 
-      if (org?.name) { setOrgName(org.name); setOriginal(org.name) }
+      if (org?.name) {
+        setOrgName(org.name)
+        setOriginal(org.name)
+      }
       setLoading(false)
     }
     load()
@@ -470,9 +670,18 @@ function OrganizationSection() {
     >
       {loading ? (
         <div className="space-y-3 animate-pulse">
-          <div className="h-3 rounded w-24" style={{ backgroundColor: 'var(--surface-3)' }} />
-          <div className="h-9 rounded-lg w-full" style={{ backgroundColor: 'var(--surface-3)' }} />
-          <div className="h-8 rounded-lg w-28" style={{ backgroundColor: 'var(--surface-3)' }} />
+          <div
+            className="h-3 rounded w-24"
+            style={{ backgroundColor: 'var(--surface-3)' }}
+          />
+          <div
+            className="h-9 rounded-lg w-full"
+            style={{ backgroundColor: 'var(--surface-3)' }}
+          />
+          <div
+            className="h-8 rounded-lg w-28"
+            style={{ backgroundColor: 'var(--surface-3)' }}
+          />
         </div>
       ) : (
         <form onSubmit={handleSave} className="space-y-4">
@@ -481,7 +690,7 @@ function OrganizationSection() {
             <TextInput
               id="org-name"
               value={orgName}
-              onChange={e => setOrgName(e.target.value)}
+              onChange={(e) => setOrgName(e.target.value)}
               placeholder="Your organization name"
               required
             />
@@ -494,8 +703,14 @@ function OrganizationSection() {
                 onClick={() => setOrgName(original)}
                 className="text-sm transition-colors"
                 style={{ color: 'var(--text-dim)' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)' }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.color =
+                    'var(--text-secondary)'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.color =
+                    'var(--text-dim)'
+                }}
               >
                 Cancel
               </button>
@@ -509,14 +724,23 @@ function OrganizationSection() {
 
 /* ── Notifications section ───────────────────────────────────── */
 
-const THRESHOLD_OPTIONS: { value: NotificationPrefs['alertDaysThreshold']; label: string }[] = [
-  { value: 7,  label: '7 days' },
+const THRESHOLD_OPTIONS: {
+  value: NotificationPrefs['alertDaysThreshold']
+  label: string
+}[] = [
+  { value: 7, label: '7 days' },
   { value: 14, label: '14 days' },
   { value: 30, label: '30 days' },
   { value: 60, label: '60 days' },
 ]
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+function Toggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+}) {
   return (
     <button
       type="button"
@@ -546,34 +770,58 @@ function NotificationsSection() {
         {/* Enable toggle */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Show deadline alerts</p>
+            <p
+              className="text-sm font-medium"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Show deadline alerts
+            </p>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
-              Display the notification bell and dashboard banners for grants nearing their deadline.
+              Display the notification bell and dashboard banners for grants
+              nearing their deadline.
             </p>
           </div>
-          <Toggle checked={prefs.alertsEnabled} onChange={v => updatePrefs({ alertsEnabled: v })} />
+          <Toggle
+            checked={prefs.alertsEnabled}
+            onChange={(v) => updatePrefs({ alertsEnabled: v })}
+          />
         </div>
 
         <div style={{ borderTop: '1px solid var(--border)' }} />
 
         {/* Threshold */}
-        <div className={prefs.alertsEnabled ? '' : 'opacity-40 pointer-events-none'}>
-          <FieldLabel htmlFor="alert-threshold">Alert me when deadline is within</FieldLabel>
+        <div
+          className={
+            prefs.alertsEnabled ? '' : 'opacity-40 pointer-events-none'
+          }
+        >
+          <FieldLabel htmlFor="alert-threshold">
+            Alert me when deadline is within
+          </FieldLabel>
           <select
             id="alert-threshold"
             value={prefs.alertDaysThreshold}
-            onChange={e => updatePrefs({ alertDaysThreshold: Number(e.target.value) as NotificationPrefs['alertDaysThreshold'] })}
+            onChange={(e) =>
+              updatePrefs({
+                alertDaysThreshold: Number(
+                  e.target.value
+                ) as NotificationPrefs['alertDaysThreshold'],
+              })
+            }
             disabled={!prefs.alertsEnabled}
             className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent disabled:opacity-40"
             style={inputStyle}
           >
-            {THRESHOLD_OPTIONS.map(o => (
-              <option key={o.value} value={o.value}>{o.label}</option>
+            {THRESHOLD_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
             ))}
           </select>
           <p className="mt-1.5 text-xs" style={{ color: 'var(--text-dim)' }}>
-            Grants within this window appear in the sidebar bell and dashboard banners.
-            Overdue and 7-day grants always show as urgent regardless of this setting.
+            Grants within this window appear in the sidebar bell and dashboard
+            banners. Overdue and 7-day grants always show as urgent regardless
+            of this setting.
           </p>
         </div>
       </div>
@@ -614,17 +862,39 @@ function PlaceholderSection({ section }: { section: Section }) {
       <div className="flex items-start gap-4">
         <div
           className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-          style={{ backgroundColor: 'var(--gold-bg)', border: '1px solid var(--gold-border)' }}
+          style={{
+            backgroundColor: 'var(--gold-bg)',
+            border: '1px solid var(--gold-border)',
+          }}
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24"
-            stroke="currentColor" strokeWidth={1.5} style={{ color: 'var(--gold)' }}>
-            <path strokeLinecap="round" strokeLinejoin="round"
-              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            style={{ color: 'var(--gold)' }}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
           </svg>
         </div>
         <div>
-          <p className="text-sm font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>Coming soon</p>
-          <p className="text-sm leading-relaxed max-w-md" style={{ color: 'var(--text-dim)' }}>{content.body}</p>
+          <p
+            className="text-sm font-semibold mb-1"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            Coming soon
+          </p>
+          <p
+            className="text-sm leading-relaxed max-w-md"
+            style={{ color: 'var(--text-dim)' }}
+          >
+            {content.body}
+          </p>
         </div>
       </div>
     </SectionCard>
@@ -644,7 +914,10 @@ export default function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" subtitle="Account and workspace preferences" />
+      <PageHeader
+        title="Settings"
+        subtitle="Account and workspace preferences"
+      />
 
       <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* ── Left nav ───────────────────────────────────────── */}
@@ -655,24 +928,35 @@ export default function SettingsPage() {
             backgroundColor: 'var(--surface)',
           }}
         >
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.map((item) => (
             <button
               key={item.id}
               onClick={() => handleNav(item.id)}
               className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-left transition-colors"
-              style={active === item.id
-                ? { backgroundColor: 'var(--gold-bg)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }
-                : { color: 'var(--text-dim)', border: '1px solid transparent' }
+              style={
+                active === item.id
+                  ? {
+                      backgroundColor: 'var(--gold-bg)',
+                      color: 'var(--gold)',
+                      border: '1px solid var(--gold-border)',
+                    }
+                  : {
+                      color: 'var(--text-dim)',
+                      border: '1px solid transparent',
+                    }
               }
-              onMouseEnter={e => {
+              onMouseEnter={(e) => {
                 if (active !== item.id) {
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
-                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+                  ;(e.currentTarget as HTMLElement).style.color =
+                    'var(--text-secondary)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor =
+                    'var(--surface-2)'
                 }
               }}
-              onMouseLeave={e => {
+              onMouseLeave={(e) => {
                 if (active !== item.id) {
-                  (e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+                  ;(e.currentTarget as HTMLElement).style.color =
+                    'var(--text-dim)'
                   ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
                 }
               }}
@@ -682,7 +966,10 @@ export default function SettingsPage() {
               {item.soon && (
                 <span
                   className="text-[10px] font-semibold rounded px-1 py-0.5"
-                  style={{ backgroundColor: 'var(--surface-3)', color: 'var(--text-dim)' }}
+                  style={{
+                    backgroundColor: 'var(--surface-3)',
+                    color: 'var(--text-dim)',
+                  }}
                 >
                   Soon
                 </span>
@@ -698,12 +985,14 @@ export default function SettingsPage() {
           style={{ backgroundColor: 'var(--bg)' }}
         >
           <div className="max-w-2xl space-y-5">
-            {active === 'account'       && <AccountSection />}
-            {active === 'organization'  && <OrganizationSection />}
+            {active === 'account' && <AccountSection />}
+            {active === 'organization' && <OrganizationSection />}
             {active === 'notifications' && <NotificationsSection />}
-            {active !== 'account' && active !== 'organization' && active !== 'notifications' && (
-              <PlaceholderSection section={active} />
-            )}
+            {active !== 'account' &&
+              active !== 'organization' &&
+              active !== 'notifications' && (
+                <PlaceholderSection section={active} />
+              )}
           </div>
         </div>
       </div>

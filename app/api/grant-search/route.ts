@@ -29,13 +29,16 @@ Return ONLY valid JSON, no markdown fences.`
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { query?: string; organizationId?: string }
+    const body = (await req.json()) as {
+      query?: string
+      organizationId?: string
+    }
     const { query, organizationId } = body
 
     if (!query?.trim()) {
       return NextResponse.json(
         { error: "Describe what kind of funding you're looking for" },
-        { status: 400 },
+        { status: 400 }
       )
     }
 
@@ -57,20 +60,31 @@ export async function POST(req: NextRequest) {
       .from('grants_full')
       .select('id, name, funder, category, description')
 
-    type GrantRow = { id: string; name: string; funder: string | null; category: string | null; description: string | null }
+    type GrantRow = {
+      id: string
+      name: string
+      funder: string | null
+      category: string | null
+      description: string | null
+    }
 
-    const grantsList = (grants ?? [] as GrantRow[]).map((g: GrantRow) =>
-      `- [${g.id}] ${g.name}${g.funder ? ` | ${g.funder}` : ''}${g.category ? ` | ${g.category}` : ''}${g.description ? ` | ${g.description.slice(0, 150)}` : ''}`
-    ).join('\n')
+    const grantsList = (grants ?? ([] as GrantRow[]))
+      .map(
+        (g: GrantRow) =>
+          `- [${g.id}] ${g.name}${g.funder ? ` | ${g.funder}` : ''}${g.category ? ` | ${g.category}` : ''}${g.description ? ` | ${g.description.slice(0, 150)}` : ''}`
+      )
+      .join('\n')
 
-    const profileText = orgProfile ? `\n\nOrganization profile:
+    const profileText = orgProfile
+      ? `\n\nOrganization profile:
 - Mission: ${orgProfile.mission_statement ?? 'Not specified'}
 - Type: ${orgProfile.org_type ?? 'Not specified'}
-- Focus areas: ${(orgProfile.focus_areas as string[] | null ?? []).join(', ') || 'Not specified'}
+- Focus areas: ${((orgProfile.focus_areas as string[] | null) ?? []).join(', ') || 'Not specified'}
 - Geographic focus: ${orgProfile.geographic_focus ?? 'Not specified'}
 - Sovereignty status: ${orgProfile.sovereignty_status ?? 'Not specified'}
 - Annual budget: ${orgProfile.annual_budget_range ?? 'Not specified'}
-- Populations served: ${(orgProfile.populations_served as string[] | null ?? []).join(', ') || 'Not specified'}` : ''
+- Populations served: ${((orgProfile.populations_served as string[] | null) ?? []).join(', ') || 'Not specified'}`
+      : ''
 
     const userMessage = `Search query: "${query.trim()}"${profileText}
 
@@ -87,25 +101,33 @@ Recommend real funding directions matching this query${orgProfile ? ' and organi
     })
 
     const raw = response.content
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text)
       .join('\n')
       .trim()
 
     // Strip any markdown fences Claude may still include
-    const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '')
+    const jsonStr = raw
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```\s*$/, '')
 
     let result: { existing_matches: string[]; suggestions: unknown[] }
     try {
       result = JSON.parse(jsonStr)
     } catch {
       console.error('[grant-search] JSON parse failed. raw:', raw.slice(0, 500))
-      return NextResponse.json({ error: 'Search failed. Please try again.' }, { status: 422 })
+      return NextResponse.json(
+        { error: 'Search failed. Please try again.' },
+        { status: 422 }
+      )
     }
 
     return NextResponse.json({ data: result })
   } catch (err) {
     console.error('[grant-search] unhandled error:', err)
-    return NextResponse.json({ error: 'Search failed. Please try again.' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Search failed. Please try again.' },
+      { status: 500 }
+    )
   }
 }

@@ -39,10 +39,10 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL (e.g. `https://xyz.supabase.co`) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase project anon/public key |
+| Variable                        | Description                                                |
+| ------------------------------- | ---------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL (e.g. `https://xyz.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase project anon/public key                      |
 
 Both values are found in your Supabase dashboard under **Project Settings → API**.
 
@@ -68,10 +68,10 @@ git push
 
 In Vercel → Project → **Settings → Environment Variables**, add:
 
-| Name | Value |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
+| Name                            | Value                     |
+| ------------------------------- | ------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key    |
 
 Apply to **Production**, **Preview**, and **Development** environments.
 

@@ -9,11 +9,16 @@ export type AuthState = {
 }
 
 function friendlyError(msg: string): string {
-  if (msg.includes('Invalid login credentials')) return 'Wrong email or password.'
-  if (msg.includes('Email not confirmed')) return 'Please confirm your email before signing in.'
-  if (msg.includes('User already registered')) return 'An account with this email already exists.'
-  if (msg.includes('Password should be at least')) return 'Password must be at least 6 characters.'
-  if (msg.includes('Unable to validate email')) return 'Please enter a valid email address.'
+  if (msg.includes('Invalid login credentials'))
+    return 'Wrong email or password.'
+  if (msg.includes('Email not confirmed'))
+    return 'Please confirm your email before signing in.'
+  if (msg.includes('User already registered'))
+    return 'An account with this email already exists.'
+  if (msg.includes('Password should be at least'))
+    return 'Password must be at least 6 characters.'
+  if (msg.includes('Unable to validate email'))
+    return 'Please enter a valid email address.'
   return msg
 }
 
@@ -56,9 +61,12 @@ export async function signUp(
   }
 
   // Immediately active session — create the organisation now
-  const { error: rpcError } = await supabase.rpc('create_organization_for_user', {
-    org_name: orgName,
-  })
+  const { error: rpcError } = await supabase.rpc(
+    'create_organization_for_user',
+    {
+      org_name: orgName,
+    }
+  )
 
   if (rpcError) return { error: rpcError.message }
 

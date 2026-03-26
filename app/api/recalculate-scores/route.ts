@@ -5,7 +5,10 @@ import { recalculateOrgScores } from '@/lib/utils/recalculate-scores'
 export async function POST() {
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -16,7 +19,10 @@ export async function POST() {
     .single()
 
   if (memberError || !member?.organization_id) {
-    return NextResponse.json({ error: 'No organization found' }, { status: 404 })
+    return NextResponse.json(
+      { error: 'No organization found' },
+      { status: 404 }
+    )
   }
 
   await recalculateOrgScores(supabase, member.organization_id)

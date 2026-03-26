@@ -21,7 +21,10 @@ async function getOrgId(): Promise<string | null> {
 
 /* ── Starter snippets (seeded when org has zero snippets) ────── */
 
-const STARTERS: Omit<SnippetRow, 'id' | 'organization_id' | 'created_at' | 'updated_at'>[] = [
+const STARTERS: Omit<
+  SnippetRow,
+  'id' | 'organization_id' | 'created_at' | 'updated_at'
+>[] = [
   {
     title: 'Organization Mission',
     category: 'Mission & Vision',
@@ -61,8 +64,15 @@ const STARTERS: Omit<SnippetRow, 'id' | 'organization_id' | 'created_at' | 'upda
 export interface UseSnippetsResult {
   snippets: SnippetRow[]
   loading: boolean
-  createSnippet: (data: { title: string; category: SnippetCategory; content: string }) => Promise<SnippetRow | null>
-  updateSnippet: (id: string, data: { title: string; category: SnippetCategory; content: string }) => Promise<void>
+  createSnippet: (data: {
+    title: string
+    category: SnippetCategory
+    content: string
+  }) => Promise<SnippetRow | null>
+  updateSnippet: (
+    id: string,
+    data: { title: string; category: SnippetCategory; content: string }
+  ) => Promise<void>
   deleteSnippet: (id: string) => Promise<void>
   incrementUsed: (id: string) => Promise<void>
   refresh: () => void
@@ -72,14 +82,17 @@ export interface UseSnippetsResult {
 
 export function useSnippets(): UseSnippetsResult {
   const [snippets, setSnippets] = useState<SnippetRow[]>([])
-  const [loading,  setLoading]  = useState(true)
+  const [loading, setLoading] = useState(true)
 
   const fetchSnippets = useCallback(async () => {
     setLoading(true)
     const supabase = createClient()
 
     const orgId = await getOrgId()
-    if (!orgId) { setLoading(false); return }
+    if (!orgId) {
+      setLoading(false)
+      return
+    }
 
     const { data, error } = await supabase
       .from('snippets')
@@ -97,7 +110,7 @@ export function useSnippets(): UseSnippetsResult {
 
     // Seed 3 starter snippets if none exist yet
     if (rows.length === 0) {
-      const toInsert = STARTERS.map(s => ({ ...s, organization_id: orgId }))
+      const toInsert = STARTERS.map((s) => ({ ...s, organization_id: orgId }))
       const { data: seeded, error: seedErr } = await supabase
         .from('snippets')
         .insert(toInsert)
@@ -114,64 +127,105 @@ export function useSnippets(): UseSnippetsResult {
     setLoading(false)
   }, [])
 
-  useEffect(() => { fetchSnippets() }, [fetchSnippets])
+  useEffect(() => {
+    fetchSnippets()
+  }, [fetchSnippets])
 
-  const createSnippet = useCallback(async (
-    data: { title: string; category: SnippetCategory; content: string },
-  ): Promise<SnippetRow | null> => {
-    const orgId = await getOrgId()
-    if (!orgId) { toast('Organization not found', 'error'); return null }
+  const createSnippet = useCallback(
+    async (data: {
+      title: string
+      category: SnippetCategory
+      content: string
+    }): Promise<SnippetRow | null> => {
+      const orgId = await getOrgId()
+      if (!orgId) {
+        toast('Organization not found', 'error')
+        return null
+      }
 
-    const wc = wordCount(data.content)
-    const supabase = createClient()
-    const { data: created, error } = await supabase
-      .from('snippets')
-      .insert({ ...data, organization_id: orgId, word_count: wc, times_used: 0 })
-      .select('*')
-      .single()
+      const wc = wordCount(data.content)
+      const supabase = createClient()
+      const { data: created, error } = await supabase
+        .from('snippets')
+        .insert({
+          ...data,
+          organization_id: orgId,
+          word_count: wc,
+          times_used: 0,
+        })
+        .select('*')
+        .single()
 
-    if (error) { toast('Failed to create snippet', 'error'); return null }
+      if (error) {
+        toast('Failed to create snippet', 'error')
+        return null
+      }
 
-    const row = created as SnippetRow
-    setSnippets(prev => [...prev, row])
-    toast('Snippet created', 'success', 2000)
-    return row
-  }, [])
+      const row = created as SnippetRow
+      setSnippets((prev) => [...prev, row])
+      toast('Snippet created', 'success', 2000)
+      return row
+    },
+    []
+  )
 
-  const updateSnippet = useCallback(async (
-    id: string,
-    data: { title: string; category: SnippetCategory; content: string },
-  ): Promise<void> => {
-    const wc = wordCount(data.content)
-    const supabase = createClient()
-    const { error } = await supabase
-      .from('snippets')
-      .update({ ...data, word_count: wc })
-      .eq('id', id)
+  const updateSnippet = useCallback(
+    async (
+      id: string,
+      data: { title: string; category: SnippetCategory; content: string }
+    ): Promise<void> => {
+      const wc = wordCount(data.content)
+      const supabase = createClient()
+      const { error } = await supabase
+        .from('snippets')
+        .update({ ...data, word_count: wc })
+        .eq('id', id)
 
-    if (error) { toast('Failed to save snippet', 'error'); return }
+      if (error) {
+        toast('Failed to save snippet', 'error')
+        return
+      }
 
-    setSnippets(prev => prev.map(s => s.id === id ? { ...s, ...data, word_count: wc } : s))
-    toast('Snippet saved', 'success', 2000)
-  }, [])
+      setSnippets((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...data, word_count: wc } : s))
+      )
+      toast('Snippet saved', 'success', 2000)
+    },
+    []
+  )
 
   const deleteSnippet = useCallback(async (id: string): Promise<void> => {
     const supabase = createClient()
     const { error } = await supabase.from('snippets').delete().eq('id', id)
-    if (error) { toast('Failed to delete snippet', 'error'); return }
-    setSnippets(prev => prev.filter(s => s.id !== id))
+    if (error) {
+      toast('Failed to delete snippet', 'error')
+      return
+    }
+    setSnippets((prev) => prev.filter((s) => s.id !== id))
     toast('Snippet deleted', 'success', 2000)
   }, [])
 
   const incrementUsed = useCallback(async (id: string): Promise<void> => {
-    setSnippets(prev => {
-      const snippet = prev.find(s => s.id === id)
+    setSnippets((prev) => {
+      const snippet = prev.find((s) => s.id === id)
       if (!snippet) return prev
       const next = (snippet.times_used ?? 0) + 1
-      createClient().from('snippets').update({ times_used: next }).eq('id', id).then(() => {})
-      return prev.map(s => s.id === id ? { ...s, times_used: next } : s)
+      createClient()
+        .from('snippets')
+        .update({ times_used: next })
+        .eq('id', id)
+        .then(() => {})
+      return prev.map((s) => (s.id === id ? { ...s, times_used: next } : s))
     })
   }, [])
 
-  return { snippets, loading, createSnippet, updateSnippet, deleteSnippet, incrementUsed, refresh: fetchSnippets }
+  return {
+    snippets,
+    loading,
+    createSnippet,
+    updateSnippet,
+    deleteSnippet,
+    incrementUsed,
+    refresh: fetchSnippets,
+  }
 }

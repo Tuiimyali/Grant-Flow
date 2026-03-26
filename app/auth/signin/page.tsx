@@ -9,7 +9,9 @@ export default function SignInPage() {
 
   return (
     <>
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">Sign in to your account</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">
+        Sign in to your account
+      </h2>
 
       <form action={formAction} className="space-y-4">
         {state.error && (
@@ -19,7 +21,10 @@ export default function SignInPage() {
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Email
           </label>
           <input
@@ -34,7 +39,10 @@ export default function SignInPage() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Password
           </label>
           <input
@@ -59,7 +67,10 @@ export default function SignInPage() {
 
       <p className="mt-6 text-center text-sm text-gray-500">
         Don&apos;t have an account?{' '}
-        <Link href="/auth/signup" className="font-medium text-blue-600 hover:underline">
+        <Link
+          href="/auth/signup"
+          className="font-medium text-blue-600 hover:underline"
+        >
           Create a workspace
         </Link>
       </p>

@@ -2,13 +2,14 @@
 
 export function formatCurrency(
   amount: number | null | undefined,
-  opts: { compact?: boolean; decimals?: boolean } = {},
+  opts: { compact?: boolean; decimals?: boolean } = {}
 ): string {
   if (amount == null) return '—'
 
   if (opts.compact) {
-    if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
-    if (amount >= 1_000)     return `$${(amount / 1_000).toFixed(0)}K`
+    if (amount >= 1_000_000)
+      return `$${(amount / 1_000_000).toFixed(1).replace(/\.0$/, '')}M`
+    if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}K`
   }
 
   return new Intl.NumberFormat('en-US', {
@@ -38,7 +39,7 @@ export function daysUntil(date: string | null | undefined): number | null {
 export function formatDeadline(date: string | null | undefined): string {
   if (!date) return 'No deadline'
   const days = daysUntil(date)!
-  if (days < 0)  return 'Overdue'
+  if (days < 0) return 'Overdue'
   if (days === 0) return 'Today'
   if (days === 1) return 'Tomorrow'
   if (days <= 14) return `${days} days`

@@ -23,11 +23,14 @@ Return ONLY valid JSON, no markdown formatting.`
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json() as { url?: string }
+    const body = (await req.json()) as { url?: string }
     const { url } = body
 
     if (!url || !url.startsWith('http')) {
-      return NextResponse.json({ error: 'Please enter a valid URL' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Please enter a valid URL' },
+        { status: 400 }
+      )
     }
 
     // Fetch the page with a 30s timeout
@@ -42,30 +45,44 @@ export async function POST(req: NextRequest) {
       clearTimeout(timeout)
       if (!response.ok) {
         return NextResponse.json(
-          { error: 'Unable to read that page. Try pasting the grant details manually.' },
-          { status: 422 },
+          {
+            error:
+              'Unable to read that page. Try pasting the grant details manually.',
+          },
+          { status: 422 }
         )
       }
       html = await response.text()
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        return NextResponse.json({ error: 'The page took too long to load.' }, { status: 408 })
+        return NextResponse.json(
+          { error: 'The page took too long to load.' },
+          { status: 408 }
+        )
       }
       return NextResponse.json(
-        { error: 'Unable to read that page. Try pasting the grant details manually.' },
-        { status: 422 },
+        {
+          error:
+            'Unable to read that page. Try pasting the grant details manually.',
+        },
+        { status: 422 }
       )
     }
 
     // Strip HTML to plain text
     const $ = cheerio.load(html)
-    $('script, style, nav, header, footer, aside, [role="navigation"], [role="banner"], [role="complementary"]').remove()
+    $(
+      'script, style, nav, header, footer, aside, [role="navigation"], [role="banner"], [role="complementary"]'
+    ).remove()
     const text = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 20_000)
 
     if (!text || text.length < 100) {
       return NextResponse.json(
-        { error: 'Unable to read that page. Try pasting the grant details manually.' },
-        { status: 422 },
+        {
+          error:
+            'Unable to read that page. Try pasting the grant details manually.',
+        },
+        { status: 422 }
       )
     }
 
@@ -76,19 +93,26 @@ export async function POST(req: NextRequest) {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: `Extract grant information from this webpage content:\n\n${text}` }],
+        messages: [
+          {
+            role: 'user',
+            content: `Extract grant information from this webpage content:\n\n${text}`,
+          },
+        ],
       })
 
-      const textBlock = message.content.find(b => b.type === 'text')
+      const textBlock = message.content.find((b) => b.type === 'text')
       const raw = textBlock?.type === 'text' ? textBlock.text.trim() : ''
 
       // Strip markdown fences if present
-      const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '')
+      const jsonStr = raw
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```\s*$/, '')
       extracted = JSON.parse(jsonStr)
     } catch {
       return NextResponse.json(
         { error: 'Could not extract grant details. Please fill in manually.' },
-        { status: 422 },
+        { status: 422 }
       )
     }
 
@@ -97,7 +121,7 @@ export async function POST(req: NextRequest) {
     console.error('[grant-extract] unhandled error:', err)
     return NextResponse.json(
       { error: 'Could not extract grant details. Please fill in manually.' },
-      { status: 500 },
+      { status: 500 }
     )
   }
 }

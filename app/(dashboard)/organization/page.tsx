@@ -18,62 +18,62 @@ import type {
 
 /* ── Dropdown options (must match DB check constraints) ────── */
 const ORG_TYPES: { value: OrgType; label: string }[] = [
-  { value: 'indigenous_led',    label: 'Indigenous-Led Organization' },
-  { value: 'nonprofit_501c3',   label: '501(c)(3) Nonprofit' },
+  { value: 'indigenous_led', label: 'Indigenous-Led Organization' },
+  { value: 'nonprofit_501c3', label: '501(c)(3) Nonprofit' },
   { value: 'tribal_government', label: 'Tribal Government' },
-  { value: 'faith_based',       label: 'Faith-Based Organization' },
-  { value: 'community_org',     label: 'Community Organization' },
-  { value: 'other',             label: 'Other' },
+  { value: 'faith_based', label: 'Faith-Based Organization' },
+  { value: 'community_org', label: 'Community Organization' },
+  { value: 'other', label: 'Other' },
 ]
 
 const SOVEREIGNTY_OPTIONS: { value: SovereigntyStatus; label: string }[] = [
-  { value: 'tribal',             label: 'Tribal Nation' },
+  { value: 'tribal', label: 'Tribal Nation' },
   { value: 'federally_recognized', label: 'Federally Recognized Tribe' },
-  { value: 'state_recognized',   label: 'State Recognized Tribe' },
-  { value: '501c3',              label: '501(c)(3) Nonprofit' },
+  { value: 'state_recognized', label: 'State Recognized Tribe' },
+  { value: '501c3', label: '501(c)(3) Nonprofit' },
   { value: 'fiscal_sponsorship', label: 'Fiscal Sponsorship' },
-  { value: 'government_entity',  label: 'Government Entity' },
-  { value: 'other',              label: 'Other' },
+  { value: 'government_entity', label: 'Government Entity' },
+  { value: 'other', label: 'Other' },
 ]
 
 const BUDGET_RANGES: { value: AnnualBudgetRange; label: string }[] = [
-  { value: 'under_50k',  label: 'Under $50K' },
-  { value: '50k_100k',   label: '$50K – $100K' },
-  { value: '100k_500k',  label: '$100K – $500K' },
-  { value: '500k_1m',    label: '$500K – $1M' },
-  { value: '1m_5m',      label: '$1M – $5M' },
-  { value: 'over_5m',    label: 'Over $5M' },
+  { value: 'under_50k', label: 'Under $50K' },
+  { value: '50k_100k', label: '$50K – $100K' },
+  { value: '100k_500k', label: '$100K – $500K' },
+  { value: '500k_1m', label: '$500K – $1M' },
+  { value: '1m_5m', label: '$1M – $5M' },
+  { value: 'over_5m', label: 'Over $5M' },
 ]
 
 const STAFF_SIZES: { value: StaffSize; label: string }[] = [
-  { value: 'solo',    label: 'Solo / Just me' },
-  { value: '1_5',     label: '1–5' },
-  { value: '6_15',    label: '6–15' },
-  { value: '16_50',   label: '16–50' },
+  { value: 'solo', label: 'Solo / Just me' },
+  { value: '1_5', label: '1–5' },
+  { value: '6_15', label: '6–15' },
+  { value: '16_50', label: '16–50' },
   { value: 'over_50', label: '50+' },
 ]
 
 const GRANT_WRITER_OPTIONS: { value: HasGrantWriter; label: string }[] = [
-  { value: 'yes',        label: 'Yes — in-house' },
+  { value: 'yes', label: 'Yes — in-house' },
   { value: 'contractor', label: 'Contractor / Part-time' },
-  { value: 'no',         label: 'No' },
+  { value: 'no', label: 'No' },
 ]
 
 const SAM_OPTIONS: { value: SamRegistered; label: string }[] = [
-  { value: 'yes',         label: 'Yes' },
-  { value: 'no',          label: 'No' },
+  { value: 'yes', label: 'Yes' },
+  { value: 'no', label: 'No' },
   { value: 'in_progress', label: 'In Progress' },
 ]
 
 const AUDIT_OPTIONS: { value: SingleAuditStatus; label: string }[] = [
   { value: 'not_required', label: 'Not Required' },
-  { value: 'current',      label: 'Current / Compliant' },
-  { value: 'in_progress',  label: 'In Progress' },
-  { value: 'needed',       label: 'Needed' },
+  { value: 'current', label: 'Current / Compliant' },
+  { value: 'in_progress', label: 'In Progress' },
+  { value: 'needed', label: 'Needed' },
 ]
 
 const YESNO = [
-  { value: 'true',  label: 'Yes' },
+  { value: 'true', label: 'Yes' },
   { value: 'false', label: 'No' },
 ]
 
@@ -83,11 +83,16 @@ type Toast = { type: 'success' | 'error'; msg: string } | null
 
 /* ── Page ───────────────────────────────────────────────────── */
 export default function OrganizationPage() {
-  const { data: org, organizationId, orgName: fetchedOrgName, loading } = useOrganization()
-  const [form, setForm]       = useState<FormState>({})
+  const {
+    data: org,
+    organizationId,
+    orgName: fetchedOrgName,
+    loading,
+  } = useOrganization()
+  const [form, setForm] = useState<FormState>({})
   const [orgName, setOrgName] = useState('')
-  const [saving, setSaving]   = useState(false)
-  const [toast, setToast]     = useState<Toast>(null)
+  const [saving, setSaving] = useState(false)
+  const [toast, setToast] = useState<Toast>(null)
 
   useEffect(() => {
     if (org) setForm(org)
@@ -97,8 +102,11 @@ export default function OrganizationPage() {
     if (fetchedOrgName) setOrgName(fetchedOrgName)
   }, [fetchedOrgName])
 
-  function set<K extends keyof OrganizationProfile>(key: K, value: OrganizationProfile[K]) {
-    setForm(prev => ({ ...prev, [key]: value }))
+  function set<K extends keyof OrganizationProfile>(
+    key: K,
+    value: OrganizationProfile[K]
+  ) {
+    setForm((prev) => ({ ...prev, [key]: value }))
   }
 
   function showToast(type: 'success' | 'error', msg: string) {
@@ -119,28 +127,28 @@ export default function OrganizationPage() {
     const supabase = createClient()
 
     const profilePayload = {
-      org_type:              form.org_type              ?? null,
-      sovereignty_status:    form.sovereignty_status    ?? null,
-      ein:                   form.ein                   ?? null,
-      year_founded:          form.year_founded          ?? null,
-      mission_statement:     form.mission_statement     ?? null,
-      geographic_focus:      form.geographic_focus      ?? null,
-      annual_budget_range:   form.annual_budget_range   ?? null,
-      fiscal_sponsor:        form.fiscal_sponsor        ?? null,
-      website:               form.website               ?? null,
-      contact_email:         form.contact_email         ?? null,
-      staff_size:            form.staff_size            ?? null,
-      has_grant_writer:      form.has_grant_writer      ?? null,
-      sam_registered:        form.sam_registered        ?? null,
-      sam_uei:               form.sam_uei               ?? null,
-      single_audit_status:   form.single_audit_status   ?? null,
-      has_prior_federal:     form.has_prior_federal     ?? null,
-      prior_federal_detail:  form.prior_federal_detail  ?? null,
-      has_prior_foundation:  form.has_prior_foundation  ?? null,
+      org_type: form.org_type ?? null,
+      sovereignty_status: form.sovereignty_status ?? null,
+      ein: form.ein ?? null,
+      year_founded: form.year_founded ?? null,
+      mission_statement: form.mission_statement ?? null,
+      geographic_focus: form.geographic_focus ?? null,
+      annual_budget_range: form.annual_budget_range ?? null,
+      fiscal_sponsor: form.fiscal_sponsor ?? null,
+      website: form.website ?? null,
+      contact_email: form.contact_email ?? null,
+      staff_size: form.staff_size ?? null,
+      has_grant_writer: form.has_grant_writer ?? null,
+      sam_registered: form.sam_registered ?? null,
+      sam_uei: form.sam_uei ?? null,
+      single_audit_status: form.single_audit_status ?? null,
+      has_prior_federal: form.has_prior_federal ?? null,
+      prior_federal_detail: form.prior_federal_detail ?? null,
+      has_prior_foundation: form.has_prior_foundation ?? null,
       prior_foundation_detail: form.prior_foundation_detail ?? null,
-      focus_areas:           form.focus_areas           ?? null,
-      populations_served:    form.populations_served    ?? null,
-      updated_at:            new Date().toISOString(),
+      focus_areas: form.focus_areas ?? null,
+      populations_served: form.populations_served ?? null,
+      updated_at: new Date().toISOString(),
     }
 
     console.log('[org save] profilePayload →', profilePayload)
@@ -150,10 +158,16 @@ export default function OrganizationPage() {
         .from('organizations')
         .update({ name: orgName.trim() })
         .eq('id', organizationId)
-      if (nameErr) console.warn('[org save] org name update error:', nameErr.message)
+      if (nameErr)
+        console.warn('[org save] org name update error:', nameErr.message)
     }
 
-    const { data: saved, error, status, statusText } = org?.id
+    const {
+      data: saved,
+      error,
+      status,
+      statusText,
+    } = org?.id
       ? await supabase
           .from('organization_profiles')
           .update(profilePayload)
@@ -164,13 +178,21 @@ export default function OrganizationPage() {
           .insert({ ...profilePayload, organization_id: organizationId })
           .select()
 
-    console.log('[org save] response:', { data: saved, error, status, statusText })
+    console.log('[org save] response:', {
+      data: saved,
+      error,
+      status,
+      statusText,
+    })
 
     setSaving(false)
     if (error) {
       showToast('error', error.message)
     } else if (!saved || saved.length === 0) {
-      showToast('error', 'Save was blocked — check Supabase RLS policies for organization_profiles.')
+      showToast(
+        'error',
+        'Save was blocked — check Supabase RLS policies for organization_profiles.'
+      )
     } else {
       showToast('success', 'Profile saved successfully.')
       recalculateOrgScores(supabase, organizationId).catch(console.error)
@@ -180,8 +202,14 @@ export default function OrganizationPage() {
   if (loading) {
     return (
       <>
-        <PageHeader title="Organization" subtitle="Manage your organisation profile" />
-        <div className="p-6 flex items-center gap-2 text-sm" style={{ color: 'var(--text-dim)' }}>
+        <PageHeader
+          title="Organization"
+          subtitle="Manage your organisation profile"
+        />
+        <div
+          className="p-6 flex items-center gap-2 text-sm"
+          style={{ color: 'var(--text-dim)' }}
+        >
           <Spinner /> Loading profile…
         </div>
       </>
@@ -190,18 +218,20 @@ export default function OrganizationPage() {
 
   return (
     <>
-      <PageHeader title="Organization" subtitle="Manage your organisation profile" />
+      <PageHeader
+        title="Organization"
+        subtitle="Manage your organisation profile"
+      />
 
       <form onSubmit={handleSave} className="p-6">
         <div className="max-w-3xl space-y-8">
-
           {/* ── Section 1: Identity ──────────────────────── */}
           <Section title="Identity">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Field label="Organisation name" required span={2}>
                 <Input
                   value={orgName}
-                  onChange={v => setOrgName(v)}
+                  onChange={(v) => setOrgName(v)}
                   placeholder="Acme Water Authority"
                 />
               </Field>
@@ -210,7 +240,7 @@ export default function OrganizationPage() {
                 <Select
                   options={ORG_TYPES}
                   value={form.org_type ?? ''}
-                  onChange={v => set('org_type', v as OrgType)}
+                  onChange={(v) => set('org_type', v as OrgType)}
                 />
               </Field>
 
@@ -218,14 +248,16 @@ export default function OrganizationPage() {
                 <Select
                   options={SOVEREIGNTY_OPTIONS}
                   value={form.sovereignty_status ?? ''}
-                  onChange={v => set('sovereignty_status', v as SovereigntyStatus)}
+                  onChange={(v) =>
+                    set('sovereignty_status', v as SovereigntyStatus)
+                  }
                 />
               </Field>
 
               <Field label="EIN">
                 <Input
                   value={form.ein ?? ''}
-                  onChange={v => set('ein', v)}
+                  onChange={(v) => set('ein', v)}
                   placeholder="12-3456789"
                 />
               </Field>
@@ -234,7 +266,9 @@ export default function OrganizationPage() {
                 <Input
                   type="number"
                   value={form.year_founded?.toString() ?? ''}
-                  onChange={v => set('year_founded', v ? parseInt(v, 10) : null)}
+                  onChange={(v) =>
+                    set('year_founded', v ? parseInt(v, 10) : null)
+                  }
                   placeholder="2005"
                 />
               </Field>
@@ -243,14 +277,16 @@ export default function OrganizationPage() {
                 <Select
                   options={BUDGET_RANGES}
                   value={form.annual_budget_range ?? ''}
-                  onChange={v => set('annual_budget_range', v as AnnualBudgetRange)}
+                  onChange={(v) =>
+                    set('annual_budget_range', v as AnnualBudgetRange)
+                  }
                 />
               </Field>
 
               <Field label="Geographic focus">
                 <Input
                   value={form.geographic_focus ?? ''}
-                  onChange={v => set('geographic_focus', v)}
+                  onChange={(v) => set('geographic_focus', v)}
                   placeholder="Southwest US, Navajo Nation"
                 />
               </Field>
@@ -258,7 +294,7 @@ export default function OrganizationPage() {
               <Field label="Fiscal sponsor">
                 <Input
                   value={form.fiscal_sponsor ?? ''}
-                  onChange={v => set('fiscal_sponsor', v)}
+                  onChange={(v) => set('fiscal_sponsor', v)}
                   placeholder="Name of fiscal sponsor, if any"
                 />
               </Field>
@@ -267,7 +303,7 @@ export default function OrganizationPage() {
                 <Input
                   type="email"
                   value={form.contact_email ?? ''}
-                  onChange={v => set('contact_email', v)}
+                  onChange={(v) => set('contact_email', v)}
                   placeholder="grants@example.org"
                 />
               </Field>
@@ -276,7 +312,7 @@ export default function OrganizationPage() {
                 <Input
                   type="url"
                   value={form.website ?? ''}
-                  onChange={v => set('website', v)}
+                  onChange={(v) => set('website', v)}
                   placeholder="https://example.org"
                 />
               </Field>
@@ -284,7 +320,7 @@ export default function OrganizationPage() {
               <Field label="Mission statement" span={2}>
                 <Textarea
                   value={form.mission_statement ?? ''}
-                  onChange={v => set('mission_statement', v)}
+                  onChange={(v) => set('mission_statement', v)}
                   placeholder="Describe your organisation's mission…"
                   rows={4}
                 />
@@ -299,7 +335,7 @@ export default function OrganizationPage() {
                 <Select
                   options={STAFF_SIZES}
                   value={form.staff_size ?? ''}
-                  onChange={v => set('staff_size', v as StaffSize)}
+                  onChange={(v) => set('staff_size', v as StaffSize)}
                 />
               </Field>
 
@@ -307,7 +343,7 @@ export default function OrganizationPage() {
                 <Select
                   options={GRANT_WRITER_OPTIONS}
                   value={form.has_grant_writer ?? ''}
-                  onChange={v => set('has_grant_writer', v as HasGrantWriter)}
+                  onChange={(v) => set('has_grant_writer', v as HasGrantWriter)}
                 />
               </Field>
 
@@ -315,14 +351,14 @@ export default function OrganizationPage() {
                 <Select
                   options={SAM_OPTIONS}
                   value={form.sam_registered ?? ''}
-                  onChange={v => set('sam_registered', v as SamRegistered)}
+                  onChange={(v) => set('sam_registered', v as SamRegistered)}
                 />
               </Field>
 
               <Field label="SAM UEI">
                 <Input
                   value={form.sam_uei ?? ''}
-                  onChange={v => set('sam_uei', v)}
+                  onChange={(v) => set('sam_uei', v)}
                   placeholder="18-character UEI"
                 />
               </Field>
@@ -331,7 +367,9 @@ export default function OrganizationPage() {
                 <Select
                   options={AUDIT_OPTIONS}
                   value={form.single_audit_status ?? ''}
-                  onChange={v => set('single_audit_status', v as SingleAuditStatus)}
+                  onChange={(v) =>
+                    set('single_audit_status', v as SingleAuditStatus)
+                  }
                 />
               </Field>
             </div>
@@ -343,16 +381,22 @@ export default function OrganizationPage() {
               <Field label="Prior federal grants">
                 <Select
                   options={YESNO}
-                  value={form.has_prior_federal === null || form.has_prior_federal === undefined
-                    ? '' : String(form.has_prior_federal)}
-                  onChange={v => set('has_prior_federal', v === '' ? null : v === 'true')}
+                  value={
+                    form.has_prior_federal === null ||
+                    form.has_prior_federal === undefined
+                      ? ''
+                      : String(form.has_prior_federal)
+                  }
+                  onChange={(v) =>
+                    set('has_prior_federal', v === '' ? null : v === 'true')
+                  }
                 />
               </Field>
 
               <Field label="Federal grant details" span={2}>
                 <Textarea
                   value={form.prior_federal_detail ?? ''}
-                  onChange={v => set('prior_federal_detail', v)}
+                  onChange={(v) => set('prior_federal_detail', v)}
                   placeholder="List federal grants received, agencies, and years…"
                   rows={3}
                   disabled={form.has_prior_federal !== true}
@@ -362,16 +406,22 @@ export default function OrganizationPage() {
               <Field label="Prior foundation grants">
                 <Select
                   options={YESNO}
-                  value={form.has_prior_foundation === null || form.has_prior_foundation === undefined
-                    ? '' : String(form.has_prior_foundation)}
-                  onChange={v => set('has_prior_foundation', v === '' ? null : v === 'true')}
+                  value={
+                    form.has_prior_foundation === null ||
+                    form.has_prior_foundation === undefined
+                      ? ''
+                      : String(form.has_prior_foundation)
+                  }
+                  onChange={(v) =>
+                    set('has_prior_foundation', v === '' ? null : v === 'true')
+                  }
                 />
               </Field>
 
               <Field label="Foundation grant details" span={2}>
                 <Textarea
                   value={form.prior_foundation_detail ?? ''}
-                  onChange={v => set('prior_foundation_detail', v)}
+                  onChange={(v) => set('prior_foundation_detail', v)}
                   placeholder="List foundations, grant names, and years…"
                   rows={3}
                   disabled={form.has_prior_foundation !== true}
@@ -383,18 +433,24 @@ export default function OrganizationPage() {
           {/* ── Section 4: Focus & Populations ───────────── */}
           <Section title="Focus &amp; Populations">
             <div className="space-y-5">
-              <Field label="Focus areas" hint="Press Enter or comma to add a tag">
+              <Field
+                label="Focus areas"
+                hint="Press Enter or comma to add a tag"
+              >
                 <TagInput
                   tags={form.focus_areas ?? []}
-                  onChange={tags => set('focus_areas', tags)}
+                  onChange={(tags) => set('focus_areas', tags)}
                   placeholder="e.g. Water quality, Climate resilience"
                 />
               </Field>
 
-              <Field label="Populations served" hint="Press Enter or comma to add a tag">
+              <Field
+                label="Populations served"
+                hint="Press Enter or comma to add a tag"
+              >
                 <TagInput
                   tags={form.populations_served ?? []}
-                  onChange={tags => set('populations_served', tags)}
+                  onChange={(tags) => set('populations_served', tags)}
                   placeholder="e.g. Tribal communities, Rural households"
                 />
               </Field>
@@ -428,12 +484,21 @@ export default function OrganizationPage() {
 }
 
 /* ── Form primitives ────────────────────────────────────────── */
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <div>
       <h2
         className="text-xs font-semibold uppercase tracking-widest pb-3 mb-4"
-        style={{ color: 'var(--text-dim)', borderBottom: '1px solid var(--border)' }}
+        style={{
+          color: 'var(--text-dim)',
+          borderBottom: '1px solid var(--border)',
+        }}
         dangerouslySetInnerHTML={{ __html: title }}
       />
       {children}
@@ -442,7 +507,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Field({
-  label, hint, required, span, children,
+  label,
+  hint,
+  required,
+  span,
+  children,
 }: {
   label: string
   hint?: string
@@ -452,12 +521,23 @@ function Field({
 }) {
   return (
     <div className={span === 2 ? 'md:col-span-2' : ''}>
-      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>
+      <label
+        className="block text-sm font-medium mb-1"
+        style={{ color: 'var(--text-secondary)' }}
+      >
         {label}
-        {required && <span className="ml-0.5" style={{ color: 'var(--danger)' }}>*</span>}
+        {required && (
+          <span className="ml-0.5" style={{ color: 'var(--danger)' }}>
+            *
+          </span>
+        )}
       </label>
       {children}
-      {hint && <p className="mt-1 text-xs" style={{ color: 'var(--text-dim)' }}>{hint}</p>}
+      {hint && (
+        <p className="mt-1 text-xs" style={{ color: 'var(--text-dim)' }}>
+          {hint}
+        </p>
+      )}
     </div>
   )
 }
@@ -474,7 +554,11 @@ const inputClass =
   'disabled:opacity-40 disabled:cursor-not-allowed'
 
 function Input({
-  value, onChange, type = 'text', placeholder, disabled,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
+  disabled,
 }: {
   value: string
   onChange: (v: string) => void
@@ -486,7 +570,7 @@ function Input({
     <input
       type={type}
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       disabled={disabled}
       className={inputClass}
@@ -496,7 +580,11 @@ function Input({
 }
 
 function Textarea({
-  value, onChange, placeholder, rows = 3, disabled,
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+  disabled,
 }: {
   value: string
   onChange: (v: string) => void
@@ -507,7 +595,7 @@ function Textarea({
   return (
     <textarea
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
       disabled={disabled}
@@ -518,7 +606,9 @@ function Textarea({
 }
 
 function Select<T extends string>({
-  options, value, onChange,
+  options,
+  value,
+  onChange,
 }: {
   options: { value: T; label: string }[]
   value: string
@@ -527,20 +617,24 @@ function Select<T extends string>({
   return (
     <select
       value={value}
-      onChange={e => onChange(e.target.value)}
+      onChange={(e) => onChange(e.target.value)}
       className={inputClass}
       style={inputStyle}
     >
       <option value="">— Select —</option>
-      {options.map(o => (
-        <option key={o.value} value={o.value}>{o.label}</option>
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>
+          {o.label}
+        </option>
       ))}
     </select>
   )
 }
 
 function TagInput({
-  tags, onChange, placeholder,
+  tags,
+  onChange,
+  placeholder,
 }: {
   tags: string[]
   onChange: (tags: string[]) => void
@@ -569,23 +663,32 @@ function TagInput({
   return (
     <div
       className="min-h-[42px] w-full rounded-lg px-2 py-1.5 flex flex-wrap gap-1.5 cursor-text focus-within:ring-2 focus-within:border-transparent"
-      style={{
-        backgroundColor: 'var(--surface-2)',
-        border: '1px solid var(--border)',
-        '--tw-ring-color': 'var(--gold)',
-      } as React.CSSProperties}
+      style={
+        {
+          backgroundColor: 'var(--surface-2)',
+          border: '1px solid var(--border)',
+          '--tw-ring-color': 'var(--gold)',
+        } as React.CSSProperties
+      }
       onClick={() => inputRef.current?.focus()}
     >
-      {tags.map(tag => (
+      {tags.map((tag) => (
         <span
           key={tag}
           className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium"
-          style={{ backgroundColor: 'var(--gold-bg)', color: 'var(--gold)', border: '1px solid var(--gold-border)' }}
+          style={{
+            backgroundColor: 'var(--gold-bg)',
+            color: 'var(--gold)',
+            border: '1px solid var(--gold-border)',
+          }}
         >
           {tag}
           <button
             type="button"
-            onClick={e => { e.stopPropagation(); onChange(tags.filter(t => t !== tag)) }}
+            onClick={(e) => {
+              e.stopPropagation()
+              onChange(tags.filter((t) => t !== tag))
+            }}
             className="ml-0.5 hover:opacity-70 leading-none"
             aria-label={`Remove ${tag}`}
           >
@@ -596,13 +699,18 @@ function TagInput({
       <input
         ref={inputRef}
         value={input}
-        onChange={e => {
+        onChange={(e) => {
           const v = e.target.value
-          if (v.endsWith(',')) { addTag(v); return }
+          if (v.endsWith(',')) {
+            addTag(v)
+            return
+          }
           setInput(v)
         }}
         onKeyDown={handleKey}
-        onBlur={() => { if (input.trim()) addTag(input) }}
+        onBlur={() => {
+          if (input.trim()) addTag(input)
+        }}
         placeholder={tags.length === 0 ? placeholder : ''}
         className="flex-1 min-w-[120px] bg-transparent text-sm outline-none py-0.5 px-1"
         style={{ color: 'var(--text-primary)' }}
@@ -625,12 +733,28 @@ function ToastNotification({ toast }: { toast: NonNullable<Toast> }) {
       role="alert"
     >
       {isSuccess ? (
-        <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
-          <path fillRule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clipRule="evenodd" />
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className="w-5 h-5 shrink-0"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
+            clipRule="evenodd"
+          />
         </svg>
       ) : (
-        <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5 shrink-0">
-          <path fillRule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clipRule="evenodd" />
+        <svg
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          className="w-5 h-5 shrink-0"
+        >
+          <path
+            fillRule="evenodd"
+            d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+            clipRule="evenodd"
+          />
         </svg>
       )}
       {toast.msg}
@@ -641,8 +765,19 @@ function ToastNotification({ toast }: { toast: NonNullable<Toast> }) {
 function Spinner() {
   return (
     <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z" />
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4Z"
+      />
     </svg>
   )
 }

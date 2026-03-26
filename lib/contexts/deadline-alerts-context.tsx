@@ -36,29 +36,31 @@ const DEFAULT_PREFS: NotificationPrefs = {
 const PREFS_KEY = 'grant-notification-prefs'
 
 interface ContextValue {
-  alerts:           AlertGrant[]
-  overdueAlerts:    AlertGrant[]
-  urgentAlerts:     AlertGrant[]
-  soonAlerts:       AlertGrant[]
-  approachingAlerts:AlertGrant[]
-  badgeCount:       number
-  prefs:            NotificationPrefs
-  updatePrefs:      (update: Partial<NotificationPrefs>) => void
-  loading:          boolean
+  alerts: AlertGrant[]
+  overdueAlerts: AlertGrant[]
+  urgentAlerts: AlertGrant[]
+  soonAlerts: AlertGrant[]
+  approachingAlerts: AlertGrant[]
+  badgeCount: number
+  prefs: NotificationPrefs
+  updatePrefs: (update: Partial<NotificationPrefs>) => void
+  loading: boolean
 }
 
 /* ── Helpers ────────────────────────────────────────────────── */
 
 function daysUntil(iso: string): number {
-  const now = new Date(); now.setHours(0, 0, 0, 0)
-  const d   = new Date(iso); d.setHours(0, 0, 0, 0)
+  const now = new Date()
+  now.setHours(0, 0, 0, 0)
+  const d = new Date(iso)
+  d.setHours(0, 0, 0, 0)
   return Math.round((d.getTime() - now.getTime()) / 86_400_000)
 }
 
 function classify(days: number, threshold: number): Urgency | null {
-  if (days < 0)          return 'overdue'
-  if (days <= 7)         return 'urgent'
-  if (days <= 14)        return 'soon'
+  if (days < 0) return 'overdue'
+  if (days <= 7) return 'urgent'
+  if (days <= 14) return 'soon'
   if (days <= threshold) return 'approaching'
   return null
 }
@@ -66,23 +68,38 @@ function classify(days: number, threshold: number): Urgency | null {
 /* ── Context ────────────────────────────────────────────────── */
 
 const DeadlineAlertsContext = createContext<ContextValue>({
-  alerts: [], overdueAlerts: [], urgentAlerts: [],
-  soonAlerts: [], approachingAlerts: [],
-  badgeCount: 0, prefs: DEFAULT_PREFS,
-  updatePrefs: () => {}, loading: true,
+  alerts: [],
+  overdueAlerts: [],
+  urgentAlerts: [],
+  soonAlerts: [],
+  approachingAlerts: [],
+  badgeCount: 0,
+  prefs: DEFAULT_PREFS,
+  updatePrefs: () => {},
+  loading: true,
 })
 
-export function DeadlineAlertsProvider({ children }: { children: React.ReactNode }) {
-  const [all,     setAll]     = useState<AlertGrant[]>([])
+export function DeadlineAlertsProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const [all, setAll] = useState<AlertGrant[]>([])
   const [loading, setLoading] = useState(true)
-  const [prefs,   setPrefs]   = useState<NotificationPrefs>(DEFAULT_PREFS)
+  const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS)
 
   // Load prefs from localStorage (client-only)
   useEffect(() => {
     try {
       const raw = localStorage.getItem(PREFS_KEY)
-      if (raw) setPrefs(prev => ({ ...prev, ...(JSON.parse(raw) as Partial<NotificationPrefs>) }))
-    } catch { /* ignore */ }
+      if (raw)
+        setPrefs((prev) => ({
+          ...prev,
+          ...(JSON.parse(raw) as Partial<NotificationPrefs>),
+        }))
+    } catch {
+      /* ignore */
+    }
   }, [])
 
   // Fetch active grants whenever threshold changes
@@ -103,10 +120,13 @@ export function DeadlineAlertsProvider({ children }: { children: React.ReactNode
       const categorized: AlertGrant[] = []
 
       for (const g of (data ?? []) as {
-        id: string; name: string; funder: string | null
-        deadline: string; pipeline_status: string
+        id: string
+        name: string
+        funder: string | null
+        deadline: string
+        pipeline_status: string
       }[]) {
-        const days    = daysUntil(g.deadline)
+        const days = daysUntil(g.deadline)
         const urgency = classify(days, threshold)
         if (urgency) categorized.push({ ...g, days, urgency })
       }
@@ -118,30 +138,49 @@ export function DeadlineAlertsProvider({ children }: { children: React.ReactNode
     }
 
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [prefs.alertDaysThreshold])
 
   const updatePrefs = useCallback((update: Partial<NotificationPrefs>) => {
-    setPrefs(prev => {
+    setPrefs((prev) => {
       const next = { ...prev, ...update }
-      try { localStorage.setItem(PREFS_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+      try {
+        localStorage.setItem(PREFS_KEY, JSON.stringify(next))
+      } catch {
+        /* ignore */
+      }
       return next
     })
   }, [])
 
-  const enabled         = prefs.alertsEnabled
-  const overdueAlerts   = enabled ? all.filter(a => a.urgency === 'overdue')    : []
-  const urgentAlerts    = enabled ? all.filter(a => a.urgency === 'urgent')     : []
-  const soonAlerts      = enabled ? all.filter(a => a.urgency === 'soon')       : []
-  const approachingAlerts = enabled ? all.filter(a => a.urgency === 'approaching') : []
-  const alerts          = enabled ? all : []
-  const badgeCount      = overdueAlerts.length + urgentAlerts.length
+  const enabled = prefs.alertsEnabled
+  const overdueAlerts = enabled
+    ? all.filter((a) => a.urgency === 'overdue')
+    : []
+  const urgentAlerts = enabled ? all.filter((a) => a.urgency === 'urgent') : []
+  const soonAlerts = enabled ? all.filter((a) => a.urgency === 'soon') : []
+  const approachingAlerts = enabled
+    ? all.filter((a) => a.urgency === 'approaching')
+    : []
+  const alerts = enabled ? all : []
+  const badgeCount = overdueAlerts.length + urgentAlerts.length
 
   return (
-    <DeadlineAlertsContext.Provider value={{
-      alerts, overdueAlerts, urgentAlerts, soonAlerts, approachingAlerts,
-      badgeCount, prefs, updatePrefs, loading,
-    }}>
+    <DeadlineAlertsContext.Provider
+      value={{
+        alerts,
+        overdueAlerts,
+        urgentAlerts,
+        soonAlerts,
+        approachingAlerts,
+        badgeCount,
+        prefs,
+        updatePrefs,
+        loading,
+      }}
+    >
       {children}
     </DeadlineAlertsContext.Provider>
   )

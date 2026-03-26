@@ -2,10 +2,17 @@ import Sidebar from '@/components/sidebar'
 import { Toaster } from '@/components/toaster'
 import { DeadlineAlertsProvider } from '@/lib/contexts/deadline-alerts-context'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <DeadlineAlertsProvider>
-      <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+      <div
+        className="flex min-h-screen"
+        style={{ backgroundColor: 'var(--bg)' }}
+      >
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 overflow-auto page-enter">
           {children}
