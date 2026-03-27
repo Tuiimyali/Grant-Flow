@@ -56,7 +56,7 @@ function toGrantForScoring(
   }
 }
 
-async function upsertMatchRow(
+async function updateMatchRow(
   supabase: SupabaseClient,
   grant: GrantForScoring,
   org: Partial<OrganizationProfile>
@@ -103,7 +103,7 @@ export async function recalculateOrgScores(
 
   await Promise.all(
     grants.map((g) =>
-      upsertMatchRow(
+      updateMatchRow(
         supabase,
         toGrantForScoring(g, descMap.get(g.id) ?? null),
         org
@@ -137,5 +137,5 @@ export async function recalculateGrantScore(
     grantRes.data as GrantsFullRow,
     descRes.data?.description ?? null
   )
-  await upsertMatchRow(supabase, grant, org)
+  await updateMatchRow(supabase, grant, org)
 }
