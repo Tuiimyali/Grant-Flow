@@ -1,50 +1,32 @@
 import { daysUntil, formatDeadline } from '@/lib/utils/formatting'
 import { fitBand, FIT_COLORS, type FitBand } from '@/lib/utils/scoring'
 
-/* ── Shared primitive ───────────────────────────────────────── */
-function Badge({
-  bg,
-  text,
-  border,
-  glow,
-  children,
-}: {
-  bg: string
-  text: string
-  border: string
-  glow?: string
-  children: React.ReactNode
-}) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${bg} ${text} ${border} ${glow ?? ''}`}
-    >
-      {children}
-    </span>
-  )
-}
-
 /* ── FitBadge ───────────────────────────────────────────────── */
 const FIT_LABEL: Record<FitBand, string> = {
-  excellent: 'Excellent fit',
-  good: 'Good fit',
-  moderate: 'Moderate fit',
-  low: 'Low fit',
+  excellent: 'Excellent',
+  good: 'Good',
+  moderate: 'Moderate',
+  low: 'Low',
   unknown: 'No score',
 }
 
 export function FitBadge({ score }: { score: number | null | undefined }) {
   const band = fitBand(score)
   const colors = FIT_COLORS[band]
-  const label = score != null ? `${score}` : '—'
+
+  if (score == null) {
+    return (
+      <span className="text-xs" style={{ color: 'var(--text-dim)' }}>
+        —
+      </span>
+    )
+  }
 
   return (
-    <Badge bg={colors.bg} text={colors.text} border={colors.border}>
-      <span className="tabular-nums font-semibold">{label}</span>
-      <span className="opacity-70">
-        {score != null ? `· ${FIT_LABEL[band]}` : FIT_LABEL[band]}
-      </span>
-    </Badge>
+    <span className={`inline-flex items-center gap-1.5 text-xs ${colors.text}`}>
+      <span className="tabular-nums font-semibold">{score}%</span>
+      <span className="opacity-50">{FIT_LABEL[band]}</span>
+    </span>
   )
 }
 
@@ -66,43 +48,43 @@ const STATUS_STYLES: Record<
   researching: {
     bg: 'bg-sky-500/10',
     text: 'text-sky-400',
-    border: 'border-sky-500/25',
+    border: 'border-sky-500/20',
     label: 'Researching',
   },
   drafting: {
     bg: 'bg-violet-500/10',
     text: 'text-violet-400',
-    border: 'border-violet-500/25',
+    border: 'border-violet-500/20',
     label: 'Drafting',
   },
   submitted: {
     bg: 'bg-amber-500/10',
     text: 'text-amber-400',
-    border: 'border-amber-500/25',
+    border: 'border-amber-500/20',
     label: 'Submitted',
   },
   awarded: {
     bg: 'bg-emerald-500/10',
     text: 'text-emerald-400',
-    border: 'border-emerald-500/25',
+    border: 'border-emerald-500/20',
     label: 'Awarded',
   },
   declined: {
     bg: 'bg-red-500/10',
     text: 'text-red-400',
-    border: 'border-red-500/25',
+    border: 'border-red-500/20',
     label: 'Declined',
   },
   withdrawn: {
     bg: 'bg-slate-500/10',
     text: 'text-slate-400',
-    border: 'border-slate-500/20',
+    border: 'border-slate-500/15',
     label: 'Withdrawn',
   },
   expired: {
     bg: 'bg-slate-500/10',
     text: 'text-slate-400',
-    border: 'border-slate-500/20',
+    border: 'border-slate-500/15',
     label: 'Expired',
   },
 }
@@ -110,76 +92,42 @@ const STATUS_STYLES: Record<
 const FALLBACK_STATUS = {
   bg: 'bg-slate-500/10',
   text: 'text-slate-400',
-  border: 'border-slate-500/20',
+  border: 'border-slate-500/15',
 }
 
 export function StatusBadge({ status }: { status: GrantStatus }) {
   const s = STATUS_STYLES[status] ?? { ...FALLBACK_STATUS, label: status }
   return (
-    <Badge bg={s.bg} text={s.text} border={s.border}>
+    <span
+      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium tracking-wide ${s.bg} ${s.text} ${s.border}`}
+    >
       {s.label}
-    </Badge>
+    </span>
   )
 }
 
 /* ── DeadlineBadge ──────────────────────────────────────────── */
-function deadlineStyles(days: number | null): {
-  bg: string
-  text: string
-  border: string
-  glow?: string
-} {
-  if (days === null)
-    return {
-      bg: 'bg-slate-500/10',
-      text: 'text-slate-500',
-      border: 'border-slate-500/20',
-    }
-  if (days < 0)
-    return {
-      bg: 'bg-red-500/10',
-      text: 'text-red-400',
-      border: 'border-red-500/30',
-      glow: 'shadow-[0_0_8px_1px_rgba(196,90,90,0.25)]',
-    }
-  if (days <= 7)
-    return {
-      bg: 'bg-red-500/10',
-      text: 'text-red-400',
-      border: 'border-red-500/30',
-      glow: 'shadow-[0_0_8px_1px_rgba(196,90,90,0.25)]',
-    }
-  if (days <= 14)
-    return {
-      bg: 'bg-amber-500/10',
-      text: 'text-amber-400',
-      border: 'border-amber-500/30',
-    }
-  if (days <= 30)
-    return {
-      bg: 'bg-sky-500/10',
-      text: 'text-sky-400',
-      border: 'border-sky-500/25',
-    }
-  return {
-    bg: 'bg-slate-500/10',
-    text: 'text-slate-500',
-    border: 'border-slate-500/20',
-  }
+function deadlineColor(days: number | null): string {
+  if (days === null) return 'var(--text-dim)'
+  if (days < 0) return 'var(--danger)'
+  if (days <= 7) return 'var(--danger)'
+  if (days <= 14) return 'var(--warning)'
+  if (days <= 30) return 'var(--info)'
+  return 'var(--text-dim)'
 }
 
 export function DeadlineBadge({ date }: { date: string | null | undefined }) {
   const days = daysUntil(date)
   const label = formatDeadline(date)
-  const styles = deadlineStyles(days)
+  const color = deadlineColor(days)
+  const imminent = days !== null && days <= 7 && days >= 0
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${styles.bg} ${styles.text} ${styles.border} ${styles.glow ?? ''}`}
+      className="inline-flex items-center gap-1 text-xs tabular-nums"
+      style={{ color }}
     >
-      {days !== null && days <= 14 && days >= 0 && (
-        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-      )}
+      {imminent && <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />}
       {label}
     </span>
   )

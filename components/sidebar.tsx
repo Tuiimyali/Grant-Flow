@@ -15,7 +15,7 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
         <path
           fillRule="evenodd"
@@ -32,7 +32,7 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
         <path
           fillRule="evenodd"
@@ -49,13 +49,9 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
-        <path
-          fillRule="evenodd"
-          d="M1 2a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2.5a1 1 0 0 1-.293.707l-5.414 5.414A1 1 0 0 0 13 11v5a1 1 0 0 1-.553.894l-4 2A1 1 0 0 1 7 18v-7a1 1 0 0 0-.293-.707L1.293 4.707A1 1 0 0 1 1 4V2Z"
-          clipRule="evenodd"
-        />
+        <path d="M2 3a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2ZM2 9a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1H2ZM1 15a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-1Z" />
       </svg>
     ),
   },
@@ -66,7 +62,7 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
         <path d="M2.695 14.763l-1.262 3.154a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.885L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.885 1.343Z" />
       </svg>
@@ -79,7 +75,7 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
         <path d="M9 4.804A7.968 7.968 0 0 0 5.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 0 1 5.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0 1 14.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0 0 14.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 1 1-2 0V4.804Z" />
       </svg>
@@ -92,7 +88,7 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
         <path
           fillRule="evenodd"
@@ -110,7 +106,7 @@ const NAV_ITEMS = [
       <svg
         viewBox="0 0 20 20"
         fill="currentColor"
-        className="w-[17px] h-[17px] shrink-0"
+        className="w-4 h-4 shrink-0"
       >
         <path
           fillRule="evenodd"
@@ -138,66 +134,37 @@ export default function Sidebar() {
     <aside
       style={{
         backgroundColor: 'var(--sidebar-bg)',
-        borderColor: 'var(--sidebar-border)',
+        borderRight: '1px solid var(--sidebar-border)',
       }}
       className={`
-        relative flex flex-col shrink-0 min-h-screen border-r
+        relative flex flex-col shrink-0 min-h-screen
         transition-[width] duration-200 ease-in-out
-        ${collapsed ? 'w-[64px]' : 'w-[220px]'}
+        ${collapsed ? 'w-[52px]' : 'w-[200px]'}
       `}
     >
       {/* ── Logo ─────────────────────────────────────────── */}
-      <div
-        style={{ borderColor: 'var(--sidebar-border)' }}
-        className="flex items-center h-14 border-b overflow-hidden px-3.5 gap-3"
-      >
-        {/* Water drop with gold glow */}
-        <div
-          className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 transition-all duration-200"
+      <div className="flex items-center h-12 overflow-hidden px-4 gap-2.5">
+        <span
+          className="w-[7px] h-[7px] rounded-full shrink-0"
+          style={{ backgroundColor: 'var(--gold)' }}
+        />
+        <span
+          className={`whitespace-nowrap font-semibold tracking-tight transition-[opacity,width] duration-200 ${
+            collapsed ? 'opacity-0 w-0' : 'opacity-100'
+          }`}
           style={{
-            background:
-              'linear-gradient(135deg, var(--gold-muted), var(--gold))',
-            boxShadow: '0 0 14px rgba(199,169,78,0.4)',
+            color: 'var(--text-primary)',
+            fontFamily: 'var(--font-cormorant, serif)',
+            fontSize: '15px',
+            letterSpacing: '0.01em',
           }}
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-[15px] h-[15px]"
-            style={{ color: 'rgba(0,0,0,0.75)' }}
-          >
-            <path d="M12 2C12 2 4 11.5 4 16a8 8 0 0 0 16 0C20 11.5 12 2 12 2Z" />
-          </svg>
-        </div>
-
-        {/* Wordmark */}
-        <div
-          className={`flex flex-col leading-tight overflow-hidden transition-[opacity,width] duration-200 ${
-            collapsed ? 'opacity-0 w-0' : 'opacity-100 w-auto'
-          }`}
-        >
-          <span
-            className="whitespace-nowrap font-semibold"
-            style={{
-              color: 'var(--text-primary)',
-              fontFamily: 'var(--font-cormorant, serif)',
-              fontSize: '15px',
-              letterSpacing: '0.01em',
-            }}
-          >
-            Grant Intelligence
-          </span>
-          <span
-            className="text-[10px] uppercase tracking-[0.08em] whitespace-nowrap"
-            style={{ color: 'var(--text-dim)' }}
-          >
-            Workspace
-          </span>
-        </div>
+          Grant Intel
+        </span>
       </div>
 
       {/* ── Nav ──────────────────────────────────────────── */}
-      <nav className="flex-1 px-2 py-3 space-y-0.5">
+      <nav className="flex-1 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + '/')
@@ -206,36 +173,28 @@ export default function Sidebar() {
               key={item.href}
               href={item.href}
               title={collapsed ? item.label : undefined}
-              style={
-                active
-                  ? {
-                      backgroundColor: 'var(--gold-bg)',
-                      color: 'var(--gold)',
-                      borderColor: 'var(--gold-border)',
-                    }
-                  : { color: 'var(--text-secondary)' }
-              }
+              style={{
+                color: active ? 'var(--gold)' : 'var(--text-dim)',
+                borderLeft: `2px solid ${active ? 'var(--gold)' : 'transparent'}`,
+              }}
               className={`
-                flex items-center gap-2.5 rounded-lg text-[13px] font-medium
-                border transition-all duration-150
-                ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2'}
-                ${active ? 'border-current' : 'border-transparent'}
+                flex items-center gap-3 py-2.5 text-[13px] font-medium
+                transition-colors duration-150
+                ${collapsed ? 'justify-center px-3' : 'pl-[14px] pr-4'}
               `}
               onMouseEnter={
                 !active
                   ? (e) => {
-                      const el = e.currentTarget as HTMLElement
-                      el.style.backgroundColor = 'var(--sidebar-item-hover)'
-                      el.style.color = 'var(--text-primary)'
+                      ;(e.currentTarget as HTMLElement).style.color =
+                        'var(--text-secondary)'
                     }
                   : undefined
               }
               onMouseLeave={
                 !active
                   ? (e) => {
-                      const el = e.currentTarget as HTMLElement
-                      el.style.backgroundColor = ''
-                      el.style.color = 'var(--text-secondary)'
+                      ;(e.currentTarget as HTMLElement).style.color =
+                        'var(--text-dim)'
                     }
                   : undefined
               }
@@ -248,37 +207,34 @@ export default function Sidebar() {
       </nav>
 
       {/* ── Bottom actions ────────────────────────────────── */}
-      <div
-        style={{ borderColor: 'var(--sidebar-border)' }}
-        className="px-2 py-3 border-t space-y-0.5"
-      >
+      <div className="py-3 space-y-0.5">
         <DeadlineAlertsBell collapsed={collapsed} />
 
         {/* Sign out */}
         <button
           onClick={handleSignOut}
           title={collapsed ? 'Sign out' : undefined}
-          style={{ color: 'var(--text-dim)' }}
+          style={{
+            color: 'var(--text-dim)',
+            borderLeft: '2px solid transparent',
+          }}
           className={`
-            w-full flex items-center gap-2.5 rounded-lg text-[13px] font-medium
-            transition-all duration-150
-            ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2'}
+            w-full flex items-center gap-3 py-2.5 text-[13px] font-medium
+            transition-colors duration-150
+            ${collapsed ? 'justify-center px-3' : 'pl-[14px] pr-4'}
           `}
           onMouseEnter={(e) => {
-            const el = e.currentTarget as HTMLElement
-            el.style.backgroundColor = 'var(--sidebar-item-hover)'
-            el.style.color = 'var(--text-secondary)'
+            ;(e.currentTarget as HTMLElement).style.color =
+              'var(--text-secondary)'
           }}
           onMouseLeave={(e) => {
-            const el = e.currentTarget as HTMLElement
-            el.style.backgroundColor = ''
-            el.style.color = 'var(--text-dim)'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
           }}
         >
           <svg
             viewBox="0 0 20 20"
             fill="currentColor"
-            className="w-[17px] h-[17px] shrink-0"
+            className="w-4 h-4 shrink-0"
           >
             <path
               fillRule="evenodd"
@@ -297,28 +253,28 @@ export default function Sidebar() {
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed((c) => !c)}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          style={{ color: 'var(--text-dim)' }}
+          title={collapsed ? 'Expand' : 'Collapse'}
+          style={{
+            color: 'var(--text-dim)',
+            borderLeft: '2px solid transparent',
+          }}
           className={`
-            w-full flex items-center gap-2.5 rounded-lg text-[13px] font-medium
-            transition-all duration-150
-            ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2'}
+            w-full flex items-center gap-3 py-2.5 text-[13px] font-medium
+            transition-colors duration-150
+            ${collapsed ? 'justify-center px-3' : 'pl-[14px] pr-4'}
           `}
           onMouseEnter={(e) => {
-            const el = e.currentTarget as HTMLElement
-            el.style.backgroundColor = 'var(--sidebar-item-hover)'
-            el.style.color = 'var(--text-secondary)'
+            ;(e.currentTarget as HTMLElement).style.color =
+              'var(--text-secondary)'
           }}
           onMouseLeave={(e) => {
-            const el = e.currentTarget as HTMLElement
-            el.style.backgroundColor = ''
-            el.style.color = 'var(--text-dim)'
+            ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
           }}
         >
           <svg
             viewBox="0 0 20 20"
             fill="currentColor"
-            className={`w-[17px] h-[17px] shrink-0 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`}
+            className={`w-4 h-4 shrink-0 transition-transform duration-200 ${collapsed ? 'rotate-180' : ''}`}
           >
             <path
               fillRule="evenodd"

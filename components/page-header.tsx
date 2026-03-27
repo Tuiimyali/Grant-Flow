@@ -24,14 +24,13 @@ interface PageHeaderProps {
 /* ── Action button ──────────────────────────────────────────── */
 function ActionButton({ action }: { action: ActionProps }) {
   const base =
-    'btn-scale inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-colors'
+    'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-150'
 
-  const secondaryStyle = {
-    backgroundColor: 'var(--surface-2)',
-    border: '1px solid var(--border)',
+  const secondaryStyle: React.CSSProperties = {
     color: 'var(--text-secondary)',
+    border: '1px solid var(--border)',
   }
-  const primaryStyle = {
+  const primaryStyle: React.CSSProperties = {
     backgroundColor: 'var(--gold)',
     color: '#0C0C0E',
   }
@@ -40,7 +39,7 @@ function ActionButton({ action }: { action: ActionProps }) {
     return (
       <Link
         href={action.href}
-        className={base}
+        className={`${base} btn-scale`}
         style={action.secondary ? secondaryStyle : primaryStyle}
       >
         {action.label}
@@ -52,7 +51,7 @@ function ActionButton({ action }: { action: ActionProps }) {
       type="button"
       onClick={action.onClick}
       disabled={action.disabled}
-      className={base}
+      className={`${base} btn-scale`}
       style={action.secondary ? secondaryStyle : primaryStyle}
     >
       {action.label}
@@ -61,23 +60,14 @@ function ActionButton({ action }: { action: ActionProps }) {
 }
 
 /* ── Helpers ────────────────────────────────────────────────── */
-const STATUS_LABELS: Record<string, string> = {
-  discovered: 'Discovered',
-  researching: 'Researching',
-  writing: 'Writing',
-  submitted: 'Submitted',
-  awarded: 'Awarded',
-  declined: 'Declined',
-}
-
 function daysLabel(days: number): string {
   if (days < 0) return `${Math.abs(days)}d overdue`
   if (days === 0) return 'Due today'
-  return `${days}d left`
+  return `${days}d`
 }
 
-function daysColor(days: number): string {
-  if (days < 0) return 'var(--danger)'
+function urgencyColor(days: number): string {
+  if (days <= 0) return 'var(--danger)'
   if (days <= 7) return 'var(--danger)'
   return 'var(--warning)'
 }
@@ -90,7 +80,7 @@ function NotificationBell() {
   const ref = useRef<HTMLDivElement>(null)
 
   const upcoming = [...overdueAlerts, ...urgentAlerts, ...soonAlerts]
-  const badgeCount = upcoming.length
+  const count = upcoming.length
 
   useEffect(() => {
     if (!open) return
@@ -105,104 +95,98 @@ function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative flex items-center justify-center w-9 h-9 rounded-lg transition-colors"
-        style={{
-          backgroundColor: 'var(--surface-2)',
-          border: '1px solid var(--border)',
-          color: 'var(--text-secondary)',
+        className="relative flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-150"
+        style={{ color: 'var(--text-dim)' }}
+        onMouseEnter={(e) => {
+          ;(e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+          ;(e.currentTarget as HTMLElement).style.backgroundColor =
+            'var(--surface-2)'
+        }}
+        onMouseLeave={(e) => {
+          ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+          ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
         }}
         aria-label="Deadline notifications"
       >
-        <svg
-          viewBox="0 0 20 20"
-          fill="currentColor"
-          className="w-[17px] h-[17px]"
-        >
+        <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
           <path
             fillRule="evenodd"
             d="M4 8a6 6 0 1 1 12 0c0 1.887.454 3.665 1.257 5.234a.75.75 0 0 1-.515 1.076 32.91 32.91 0 0 1-3.256.508 3.5 3.5 0 0 1-6.972 0 32.903 32.903 0 0 1-3.256-.508.75.75 0 0 1-.515-1.076A11.448 11.448 0 0 0 4 8Zm6 7c-.655 0-1.305-.02-1.95-.057a2 2 0 0 0 3.9 0c-.645.038-1.295.057-1.95.057Z"
             clipRule="evenodd"
           />
         </svg>
-        {badgeCount > 0 && (
-          <span
-            className="absolute -top-1 -right-1 flex items-center justify-center min-w-[16px] h-4
-              rounded-full text-[9px] font-bold leading-none px-0.5"
-            style={{
-              backgroundColor: 'var(--danger)',
-              color: '#fff',
-              boxShadow: '0 0 0 2px var(--bg)',
-            }}
-          >
-            {badgeCount > 9 ? '9+' : badgeCount}
-          </span>
-        )}
+        {/* Badge: dot for 1–4, number for 5+ */}
+        {count > 0 &&
+          (count >= 5 ? (
+            <span
+              className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 rounded-full text-[9px] font-bold leading-none flex items-center justify-center px-1"
+              style={{
+                backgroundColor: 'var(--danger)',
+                color: '#fff',
+                boxShadow: '0 0 0 2px var(--bg)',
+              }}
+            >
+              {count}
+            </span>
+          ) : (
+            <span
+              className="absolute top-0 right-0 w-[7px] h-[7px] rounded-full"
+              style={{
+                backgroundColor: 'var(--danger)',
+                boxShadow: '0 0 0 1.5px var(--bg)',
+              }}
+            />
+          ))}
       </button>
 
       {open && (
         <div
-          className="absolute right-0 top-full mt-2 w-80 rounded-xl z-50 overflow-hidden"
+          className="absolute right-0 top-full mt-2 w-72 rounded-xl z-50 overflow-hidden"
           style={{
             backgroundColor: 'var(--surface)',
             border: '1px solid var(--border)',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.5)',
+            boxShadow: '0 12px 40px rgba(0,0,0,0.5)',
           }}
         >
           {/* Header */}
           <div
-            className="flex items-center justify-between px-4 py-3"
+            className="flex items-center justify-between px-4 py-2.5"
             style={{ borderBottom: '1px solid var(--border)' }}
           >
             <span
-              className="text-sm font-semibold"
-              style={{ color: 'var(--text-primary)' }}
+              className="text-xs font-semibold uppercase tracking-wider"
+              style={{ color: 'var(--text-dim)' }}
             >
-              Upcoming Deadlines
+              Deadlines
             </span>
             <Link
               href="/grants"
               onClick={() => setOpen(false)}
-              className="text-xs font-medium transition-opacity hover:opacity-70"
+              className="text-xs transition-opacity hover:opacity-70"
               style={{ color: 'var(--gold)' }}
             >
-              View all →
+              View all
             </Link>
           </div>
 
           {/* List */}
           {upcoming.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <svg
-                className="w-8 h-8 mx-auto mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                style={{ color: 'var(--text-dim)' }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
-                />
-              </svg>
-              <p className="text-sm" style={{ color: 'var(--text-dim)' }}>
-                No upcoming deadlines
-              </p>
-            </div>
+            <p
+              className="px-4 py-6 text-xs text-center"
+              style={{ color: 'var(--text-dim)' }}
+            >
+              No upcoming deadlines
+            </p>
           ) : (
-            <ul className="max-h-[380px] overflow-y-auto">
+            <ul className="max-h-[320px] overflow-y-auto">
               {upcoming.map((grant) => (
-                <li
-                  key={grant.id}
-                  style={{ borderBottom: '1px solid var(--border)' }}
-                >
+                <li key={grant.id}>
                   <button
                     onClick={() => {
                       router.push('/grants')
                       setOpen(false)
                     }}
-                    className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors duration-150"
                     onMouseEnter={(e) => {
                       ;(e.currentTarget as HTMLElement).style.backgroundColor =
                         'var(--surface-2)'
@@ -213,52 +197,21 @@ function NotificationBell() {
                     }}
                   >
                     <span
-                      className="mt-1.5 w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: daysColor(grant.days) }}
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: urgencyColor(grant.days) }}
                     />
-                    <div className="min-w-0 flex-1">
-                      <p
-                        className="text-sm font-medium truncate leading-snug"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
-                        {grant.name}
-                      </p>
-                      {grant.funder && (
-                        <p
-                          className="text-xs truncate"
-                          style={{ color: 'var(--text-dim)' }}
-                        >
-                          {grant.funder}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span
-                          className="text-xs font-semibold"
-                          style={{ color: daysColor(grant.days) }}
-                        >
-                          {daysLabel(grant.days)}
-                        </span>
-                        <span
-                          className="text-xs"
-                          style={{ color: 'var(--text-dim)' }}
-                        >
-                          {grant.deadline}
-                        </span>
-                        <span
-                          className="text-xs"
-                          style={{ color: 'var(--text-dim)' }}
-                        >
-                          ·
-                        </span>
-                        <span
-                          className="text-xs"
-                          style={{ color: 'var(--text-secondary)' }}
-                        >
-                          {STATUS_LABELS[grant.pipeline_status] ??
-                            grant.pipeline_status}
-                        </span>
-                      </div>
-                    </div>
+                    <p
+                      className="text-[13px] truncate flex-1 text-left leading-snug"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {grant.name}
+                    </p>
+                    <span
+                      className="text-xs font-medium shrink-0 tabular-nums"
+                      style={{ color: urgencyColor(grant.days) }}
+                    >
+                      {daysLabel(grant.days)}
+                    </span>
                   </button>
                 </li>
               ))}
@@ -279,7 +232,7 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <header
-      className="flex items-center justify-between px-8 py-5"
+      className="flex items-center justify-between px-6 py-4"
       style={{
         backgroundColor: 'var(--surface)',
         borderBottom: '1px solid var(--border)',
@@ -287,10 +240,10 @@ export default function PageHeader({
     >
       <div>
         <h1
-          className="font-semibold tracking-tight leading-tight"
+          className="font-semibold leading-tight tracking-tight"
           style={{
             fontFamily: 'var(--font-cormorant, serif)',
-            fontSize: '24px',
+            fontSize: '20px',
             color: 'var(--text-primary)',
           }}
         >
@@ -298,15 +251,15 @@ export default function PageHeader({
         </h1>
         {subtitle && (
           <p
-            className="mt-0.5 text-sm"
-            style={{ color: 'var(--text-secondary)' }}
+            className="mt-0.5 text-xs tracking-wide"
+            style={{ color: 'var(--text-dim)' }}
           >
             {subtitle}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {secondaryAction && (
           <ActionButton action={{ ...secondaryAction, secondary: true }} />
         )}

@@ -44,13 +44,6 @@ function daysUntil(iso: string) {
   return Math.round((d.getTime() - now.getTime()) / 86_400_000)
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
 
 /* ── Page (server component) ───────────────────────────────── */
 export default async function DashboardPage() {
@@ -153,51 +146,20 @@ export default async function DashboardPage() {
             label="Active Pipeline"
             value={pipeline.length}
             sub={`${fmt$(pipeline.reduce((s, g) => s + (g.amount_high ?? g.amount_low ?? 0), 0))} potential`}
-            color="#3b82f6"
-            icon={
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path
-                  fillRule="evenodd"
-                  d="M1 2.75A.75.75 0 0 1 1.75 2h10.5a.75.75 0 0 1 0 1.5H12v13.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75v2.5a.75.75 0 0 1-.75.75H3a.75.75 0 0 1-.75-.75V3.5h-.5A.75.75 0 0 1 1 2.75ZM4 5.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1ZM4 9.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Zm4 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1Z"
-                  clipRule="evenodd"
-                />
-                <path d="M13 2.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 .75.75v5a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-5Z" />
-              </svg>
-            }
           />
           <StatCard
             label="Submitted"
             value={submitted.length}
             sub="awaiting decision"
-            color="#C7A94E"
-            icon={
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path
-                  fillRule="evenodd"
-                  d="M4 4a2 2 0 0 1 2-2h4.586A2 2 0 0 1 12 2.586L15.414 6A2 2 0 0 1 16 7.414V16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4Zm2 6a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H7a1 1 0 0 1-1-1Zm1 3a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2H7Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            }
           />
           <StatCard
             label="Awarded"
             value={fmt$(awardedTotal)}
             sub={`${awarded.length} grant${awarded.length === 1 ? '' : 's'} won`}
-            color="#4A9E6E"
-            icon={
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path
-                  fillRule="evenodd"
-                  d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            }
           />
           <StatCard
             label="Avg Fit Score"
-            value={avgFitScore !== null ? `${avgFitScore}` : '—'}
+            value={avgFitScore !== null ? `${avgFitScore}%` : '—'}
             sub={
               avgFitScore !== null
                 ? avgFitScore >= 70
@@ -207,16 +169,6 @@ export default async function DashboardPage() {
                     : 'Low match'
                 : 'No scores yet'
             }
-            color="#8b5cf6"
-            icon={
-              <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
-                <path
-                  fillRule="evenodd"
-                  d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            }
           />
         </div>
 
@@ -224,21 +176,18 @@ export default async function DashboardPage() {
         {grandTotal > 0 && (
           <div
             className="rounded-xl p-5"
-            style={{
-              backgroundColor: 'var(--surface)',
-              border: '1px solid var(--border)',
-            }}
+            style={{ backgroundColor: 'var(--surface)' }}
           >
             <h2
-              className="text-sm font-semibold mb-4"
-              style={{ color: 'var(--text-secondary)' }}
+              className="text-[11px] font-medium uppercase tracking-widest mb-3"
+              style={{ color: 'var(--text-dim)' }}
             >
               Pipeline by Value
             </h2>
 
             {/* Bar */}
             <div
-              className="flex h-2.5 rounded-full overflow-hidden gap-px"
+              className="flex h-1 rounded-full overflow-hidden"
               style={{ backgroundColor: 'var(--surface-3)' }}
             >
               {segmentData
@@ -256,11 +205,11 @@ export default async function DashboardPage() {
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-4">
+            <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3">
               {segmentData.map((seg) => (
-                <div key={seg.label} className="flex items-center gap-2">
+                <div key={seg.label} className="flex items-center gap-1.5">
                   <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ backgroundColor: seg.color }}
                   />
                   <span
@@ -270,16 +219,10 @@ export default async function DashboardPage() {
                     {seg.label}
                   </span>
                   <span
-                    className="text-xs font-semibold"
-                    style={{ color: 'var(--text-primary)' }}
+                    className="text-xs font-medium tabular-nums"
+                    style={{ color: 'var(--text-secondary)' }}
                   >
                     {fmt$(seg.total)}
-                  </span>
-                  <span
-                    className="text-xs"
-                    style={{ color: 'var(--text-dim)' }}
-                  >
-                    ({seg.count})
                   </span>
                 </div>
               ))}
@@ -288,20 +231,11 @@ export default async function DashboardPage() {
         )}
 
         {/* ── Upcoming deadlines ──────────────────────────── */}
-        <div
-          className="rounded-xl overflow-hidden"
-          style={{
-            backgroundColor: 'var(--surface)',
-            border: '1px solid var(--border)',
-          }}
-        >
-          <div
-            className="px-5 py-4"
-            style={{ borderBottom: '1px solid var(--border)' }}
-          >
+        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
+          <div className="px-5 pt-4 pb-3">
             <h2
-              className="text-sm font-semibold"
-              style={{ color: 'var(--text-secondary)' }}
+              className="text-[11px] font-medium uppercase tracking-widest"
+              style={{ color: 'var(--text-dim)' }}
             >
               Upcoming Deadlines
             </h2>
@@ -309,7 +243,7 @@ export default async function DashboardPage() {
 
           {upcoming.length === 0 ? (
             <p
-              className="px-5 py-8 text-sm text-center"
+              className="px-5 py-8 text-xs text-center"
               style={{ color: 'var(--text-dim)' }}
             >
               No upcoming deadlines.
@@ -318,61 +252,29 @@ export default async function DashboardPage() {
             <ul>
               {upcoming.map((grant) => {
                 const days = daysUntil(grant.deadline!)
-                const urgent = days <= 14
-                const warning = !urgent && days <= 30
+                const urgent = days <= 7
+                const warning = !urgent && days <= 14
+                const indicatorColor = urgent
+                  ? 'var(--danger)'
+                  : warning
+                    ? 'var(--warning)'
+                    : 'transparent'
 
                 return (
-                  <li
-                    key={grant.id}
-                    className="flex items-center justify-between px-5 py-3.5"
-                    style={{
-                      borderBottom: '1px solid var(--border)',
-                      backgroundColor: urgent
-                        ? 'rgba(196,90,90,0.04)'
-                        : undefined,
-                      boxShadow: urgent
-                        ? 'inset 3px 0 0 0 var(--danger)'
-                        : warning
-                          ? 'inset 3px 0 0 0 var(--warning)'
-                          : undefined,
-                    }}
-                  >
-                    {/* Left: name + funder */}
-                    <div className="min-w-0 flex-1 mr-4">
+                  <li key={grant.id}>
+                    <Link
+                      href={`/grants/${grant.id}`}
+                      className="group flex items-center gap-3 px-5 py-2.5 transition-colors duration-150 hover:bg-[var(--surface-2)]"
+                      style={{ borderLeft: `2px solid ${indicatorColor}` }}
+                    >
                       <p
-                        className="text-sm font-medium truncate"
+                        className="text-[13px] truncate flex-1 transition-colors duration-150 group-hover:text-[var(--gold)]"
                         style={{ color: 'var(--text-primary)' }}
                       >
                         {grant.name}
                       </p>
-                      {grant.funder && (
-                        <p
-                          className="text-xs truncate"
-                          style={{ color: 'var(--text-dim)' }}
-                        >
-                          {grant.funder}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Right: days badge + date */}
-                    <div className="flex items-center gap-3 shrink-0 text-right">
-                      {(grant.amount_high ?? grant.amount_low) && (
-                        <span
-                          className="text-xs hidden sm:block"
-                          style={{ color: 'var(--text-dim)' }}
-                        >
-                          {fmt$(grant.amount_high ?? grant.amount_low ?? 0)}
-                        </span>
-                      )}
                       <DeadlineBadge days={days} />
-                      <span
-                        className="text-xs hidden md:block w-28 text-right"
-                        style={{ color: 'var(--text-dim)' }}
-                      >
-                        {fmtDate(grant.deadline!)}
-                      </span>
-                    </div>
+                    </Link>
                   </li>
                 )
               })}
@@ -389,50 +291,36 @@ function StatCard({
   label,
   value,
   sub,
-  color,
-  icon,
 }: {
   label: string
   value: string | number
   sub: string
-  color: string
-  icon: React.ReactNode
 }) {
   return (
     <div
-      className="rounded-xl p-5 flex items-start gap-4"
-      style={{
-        backgroundColor: 'var(--surface)',
-        border: '1px solid var(--border)',
-      }}
+      className="rounded-xl p-5"
+      style={{ backgroundColor: 'var(--surface)' }}
     >
-      <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-        style={{ backgroundColor: `${color}22`, color }}
+      <p
+        className="text-[11px] font-medium uppercase tracking-widest mb-2"
+        style={{ color: 'var(--text-dim)' }}
       >
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p
-          className="text-xs font-medium uppercase tracking-wide"
-          style={{ color: 'var(--text-dim)' }}
-        >
-          {label}
-        </p>
-        <p
-          className="text-2xl font-bold mt-0.5 leading-none tabular-nums"
-          style={{
-            fontFamily: 'var(--font-cormorant, serif)',
-            fontSize: '28px',
-            color: 'var(--text-primary)',
-          }}
-        >
-          {value}
-        </p>
-        <p className="text-xs mt-1" style={{ color: 'var(--text-dim)' }}>
-          {sub}
-        </p>
-      </div>
+        {label}
+      </p>
+      <p
+        className="leading-none tabular-nums"
+        style={{
+          fontFamily: 'var(--font-cormorant, serif)',
+          fontSize: '32px',
+          fontWeight: 600,
+          color: 'var(--text-primary)',
+        }}
+      >
+        {value}
+      </p>
+      <p className="text-xs mt-1.5" style={{ color: 'var(--text-dim)' }}>
+        {sub}
+      </p>
     </div>
   )
 }
@@ -603,71 +491,23 @@ function WelcomeOnboarding({ profileDone }: { profileDone: boolean }) {
 /* ── Deadline badge (local, days-only) ─────────────────────── */
 
 function DeadlineBadge({ days }: { days: number }) {
-  if (days < 0) {
-    return (
-      <span
-        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-        style={{
-          backgroundColor: 'var(--surface-3)',
-          color: 'var(--text-dim)',
-        }}
-      >
-        Overdue
-      </span>
-    )
-  }
-  if (days === 0) {
-    return (
-      <span
-        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-        style={{
-          backgroundColor: 'var(--danger-bg)',
-          color: 'var(--danger)',
-          boxShadow: '0 0 0 1px var(--danger-border)',
-        }}
-      >
-        Today
-      </span>
-    )
-  }
-  if (days <= 14) {
-    return (
-      <span
-        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-        style={{
-          backgroundColor: 'var(--danger-bg)',
-          color: 'var(--danger)',
-          boxShadow:
-            '0 0 0 1px var(--danger-border), 0 0 8px rgba(196,90,90,0.2)',
-        }}
-      >
-        {days}d
-      </span>
-    )
-  }
-  if (days <= 30) {
-    return (
-      <span
-        className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-        style={{
-          backgroundColor: 'var(--warning-bg)',
-          color: 'var(--warning)',
-          boxShadow: '0 0 0 1px var(--warning-border)',
-        }}
-      >
-        {days}d
-      </span>
-    )
-  }
+  const color =
+    days < 0 ? 'var(--text-dim)'
+    : days <= 7 ? 'var(--danger)'
+    : days <= 14 ? 'var(--warning)'
+    : 'var(--text-dim)'
+
+  const label =
+    days < 0 ? 'Overdue'
+    : days === 0 ? 'Today'
+    : `${days}d`
+
   return (
     <span
-      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-      style={{
-        backgroundColor: 'var(--surface-3)',
-        color: 'var(--text-secondary)',
-      }}
+      className="text-xs font-medium tabular-nums shrink-0"
+      style={{ color }}
     >
-      {days}d
+      {label}
     </span>
   )
 }
