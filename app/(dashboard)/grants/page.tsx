@@ -1135,7 +1135,7 @@ function GrantsTable({
   const allSelected =
     grants.length > 0 && grants.every((g) => selectedIds.has(g.id))
   const someSelected = selectedIds.size > 0
-  const multiSelected = selectedIds.size > 1
+  const multiSelected = selectedIds.size >= 2
 
   function toggleAll() {
     setSelectedIds(allSelected ? new Set() : new Set(grants.map((g) => g.id)))
@@ -1161,22 +1161,41 @@ function GrantsTable({
             }}
           >
             <th
-              className="px-3 py-3 w-9"
+              className="px-3 py-3"
               style={{ backgroundColor: 'var(--surface)' }}
             >
-              <input
-                type="checkbox"
-                checked={allSelected}
-                ref={(el) => {
-                  if (el) el.indeterminate = someSelected && !allSelected
-                }}
-                onChange={toggleAll}
-                className="w-4 h-4 rounded cursor-pointer"
-                style={{
-                  accentColor: 'var(--gold)',
-                  borderColor: 'var(--border-2)',
-                }}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = someSelected && !allSelected
+                  }}
+                  onChange={toggleAll}
+                  className="w-4 h-4 rounded cursor-pointer shrink-0"
+                  style={{
+                    accentColor: 'var(--gold)',
+                    borderColor: 'var(--border-2)',
+                  }}
+                />
+                {multiSelected && (
+                  <button
+                    type="button"
+                    onClick={() => onBulkDeleteRequest([...selectedIds])}
+                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-white transition-opacity whitespace-nowrap"
+                    style={{ backgroundColor: 'var(--danger)' }}
+                    onMouseEnter={(e) => {
+                      ;(e.currentTarget as HTMLElement).style.opacity = '0.85'
+                    }}
+                    onMouseLeave={(e) => {
+                      ;(e.currentTarget as HTMLElement).style.opacity = '1'
+                    }}
+                  >
+                    <TrashIcon />
+                    Delete ({selectedIds.size})
+                  </button>
+                )}
+              </div>
             </th>
             {[
               'Grant',
@@ -1199,27 +1218,9 @@ function GrantsTable({
               </th>
             ))}
             <th
-              className="px-4 py-3 text-right"
+              className="px-4 py-3"
               style={{ backgroundColor: 'var(--surface)' }}
-            >
-              {multiSelected && (
-                <button
-                  type="button"
-                  onClick={() => onBulkDeleteRequest([...selectedIds])}
-                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1 text-xs font-semibold text-white transition-colors"
-                  style={{ backgroundColor: 'var(--danger)' }}
-                  onMouseEnter={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.opacity = '0.85'
-                  }}
-                  onMouseLeave={(e) => {
-                    ;(e.currentTarget as HTMLElement).style.opacity = '1'
-                  }}
-                >
-                  <TrashIcon />
-                  Delete ({selectedIds.size})
-                </button>
-              )}
-            </th>
+            />
           </tr>
         </thead>
         <tbody style={{ backgroundColor: 'var(--surface)' }}>
@@ -1280,87 +1281,90 @@ function GrantRow({
             : ''
       }}
     >
-      {/* Checkbox + inline trash */}
+      {/* Checkbox */}
       <td className="px-3 py-3">
-        <div className="flex items-center gap-1.5">
-          <input
-            type="checkbox"
-            checked={checked}
-            onChange={onToggle}
-            onClick={(e) => e.stopPropagation()}
-            className="w-4 h-4 rounded cursor-pointer"
-            style={{ accentColor: 'var(--gold)' }}
-          />
-          {checked && (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowPopover((p) => !p)}
-                className="p-1 rounded transition-colors"
-                style={{ color: 'var(--danger)' }}
-                onMouseEnter={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.backgroundColor =
-                    'var(--danger-bg)'
-                }}
-                onMouseLeave={(e) => {
-                  ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
-                }}
-                title="Delete grant"
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
+          className="w-4 h-4 rounded cursor-pointer"
+          style={{ accentColor: 'var(--gold)' }}
+        />
+      </td>
+
+      {/* Trash */}
+      <td className="pl-0 pr-1 py-3 w-7">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setShowPopover((p) => !p)}
+            className="p-1 rounded-md transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--danger)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor =
+                'var(--danger-bg)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
+            title="Delete grant"
+          >
+            <TrashIcon />
+          </button>
+          {showPopover && (
+            <div
+              className="absolute left-0 top-full mt-1.5 z-30 rounded-xl p-3 flex flex-col gap-2"
+              style={{
+                backgroundColor: 'var(--surface)',
+                border: '1px solid var(--border)',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                width: '140px',
+              }}
+            >
+              <p
+                className="text-xs font-medium"
+                style={{ color: 'var(--text-primary)' }}
               >
-                <TrashIcon />
-              </button>
-              {showPopover && (
-                <div
-                  className="absolute left-0 top-full mt-1.5 z-30 w-48 rounded-xl p-3 flex flex-col gap-2"
-                  style={{
-                    backgroundColor: 'var(--surface)',
-                    border: '1px solid var(--border)',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                Delete?
+              </p>
+              <div className="flex items-center gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowPopover(false)}
+                  className="text-xs px-2 py-1 rounded transition-colors"
+                  style={{ color: 'var(--text-dim)' }}
+                  onMouseEnter={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.color =
+                      'var(--text-secondary)'
+                  }}
+                  onMouseLeave={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.color =
+                      'var(--text-dim)'
                   }}
                 >
-                  <p
-                    className="text-xs font-medium"
-                    style={{ color: 'var(--text-primary)' }}
-                  >
-                    Delete this grant?
-                  </p>
-                  <div className="flex items-center gap-2 justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setShowPopover(false)}
-                      className="text-xs px-2 py-1 transition-colors"
-                      style={{ color: 'var(--text-dim)' }}
-                      onMouseEnter={(e) => {
-                        ;(e.currentTarget as HTMLElement).style.color =
-                          'var(--text-secondary)'
-                      }}
-                      onMouseLeave={(e) => {
-                        ;(e.currentTarget as HTMLElement).style.color =
-                          'var(--text-dim)'
-                      }}
-                    >
-                      No
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowPopover(false)
-                        onDeleteConfirm(g.id)
-                      }}
-                      className="rounded-lg px-3 py-1 text-xs font-semibold text-white transition-opacity"
-                      style={{ backgroundColor: 'var(--danger)' }}
-                      onMouseEnter={(e) => {
-                        ;(e.currentTarget as HTMLElement).style.opacity = '0.85'
-                      }}
-                      onMouseLeave={(e) => {
-                        ;(e.currentTarget as HTMLElement).style.opacity = '1'
-                      }}
-                    >
-                      Yes
-                    </button>
-                  </div>
-                </div>
-              )}
+                  No
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPopover(false)
+                    onDeleteConfirm(g.id)
+                  }}
+                  className="rounded-lg px-3 py-1 text-xs font-semibold text-white transition-opacity"
+                  style={{ backgroundColor: 'var(--danger)' }}
+                  onMouseEnter={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.opacity = '0.85'
+                  }}
+                  onMouseLeave={(e) => {
+                    ;(e.currentTarget as HTMLElement).style.opacity = '1'
+                  }}
+                >
+                  Yes
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -1716,6 +1720,7 @@ function LoadingSkeleton() {
             }}
           >
             <th className="px-3 py-3 w-9" />
+            <th className="pl-0 pr-1 py-3 w-7" />
             {[
               'Grant',
               'Amount',
@@ -1746,6 +1751,7 @@ function LoadingSkeleton() {
               }}
             >
               <td className="px-3 py-3 w-9" />
+              <td className="pl-0 pr-1 py-3 w-7" />
               <td className="px-4 py-3">
                 <div
                   className="h-4 rounded animate-pulse w-40 mb-1.5"
