@@ -37,7 +37,7 @@ function pageEstimate(words: number, pageLimit: number | null): string | null {
 /* ── Page ───────────────────────────────────────────────────── */
 
 export default function DraftsPage() {
-  const { grants, loading: grantsLoading } = useGrants()
+  const { grants, loading: grantsLoading, updateStatus } = useGrants()
   const { snippets, incrementUsed } = useSnippets()
 
   const workingGrants = useMemo(() => {
@@ -72,6 +72,9 @@ export default function DraftsPage() {
   const [showAutoDraftModal, setShowAutoDraftModal] = useState(false)
   const [autoDraftBanner, setAutoDraftBanner] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
+  const [showRequirements, setShowRequirements] = useState(true)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [showSubmitModal, setShowSubmitModal] = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -121,6 +124,14 @@ export default function DraftsPage() {
   const activeSection =
     sections.find((s) => s.title === selectedSection) ?? null
   const activeContent = selectedSection ? (contents[selectedSection] ?? '') : ''
+
+  const draftedCount = sections.filter((s) => wordCount(contents[s.title] ?? '') > 0).length
+  const allSectionsComplete = sections.length > 0 && draftedCount === sections.length
+  const activeSectionIdx = sections.findIndex((s) => s.title === selectedSection)
+  const nextSectionItem =
+    activeSectionIdx >= 0 && activeSectionIdx < sections.length - 1
+      ? sections[activeSectionIdx + 1]
+      : null
 
   async function handleAiDraft(mode: 'generate' | 'improve') {
     if (!activeSection || !selectedId) return
@@ -178,6 +189,13 @@ export default function DraftsPage() {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  async function handleMarkSubmitted(date: string) {
+    if (!selectedId) return
+    await updateStatus(selectedId, 'submitted')
+    toast(`Grant marked as submitted${date ? ` on ${date}` : ''}`, 'success', 3000)
+    setShowSubmitModal(false)
   }
 
   function handleInsertSnippet(snippet: SnippetRow) {
@@ -423,6 +441,105 @@ export default function DraftsPage() {
               </div>
             </div>
 
+            {/* Progress bar */}
+            {sections.length > 0 && !draftLoading && (
+              <div
+                className="shrink-0 px-5 py-2.5"
+                style={{
+                  borderBottom: '1px solid var(--border)',
+                  backgroundColor: 'var(--surface-2)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[11px]" style={{ color: 'var(--text-dim)' }}>
+                    {draftedCount} of {sections.length} section{sections.length !== 1 ? 's' : ''} drafted
+                  </span>
+                  {allSectionsComplete && (
+                    <span
+                      className="text-[11px] font-medium"
+                      style={{ color: 'var(--gold)' }}
+                    >
+                      Ready to review
+                    </span>
+                  )}
+                </div>
+                <div
+                  className="h-1 rounded-full overflow-hidden"
+                  style={{ backgroundColor: 'var(--border-2)' }}
+                >
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${(draftedCount / sections.length) * 100}%`,
+                      backgroundColor: allSectionsComplete ? 'var(--gold)' : '#a78bfa',
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Completion actions */}
+            {allSectionsComplete && !draftLoading && (
+              <div
+                className="shrink-0 px-5 py-3 flex items-center justify-between gap-3 flex-wrap"
+                style={{
+                  backgroundColor: 'var(--gold-bg)',
+                  borderBottom: '1px solid var(--gold-border)',
+                }}
+              >
+                <p className="text-[12px] font-medium" style={{ color: 'var(--gold)' }}>
+                  Your application is ready for review
+                </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => setShowSubmitModal(true)}
+                    className="rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+                    }}
+                    onMouseLeave={(e) => {
+                      ;(e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+                    }}
+                  >
+                    Mark as Submitted
+                  </button>
+                  <button
+                    onClick={() => setShowReviewModal(true)}
+                    className="rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors"
+                    style={{
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      color: 'var(--text-secondary)',
+                    }}
+                    onMouseEnter={(e) => {
+                      ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+                    }}
+                    onMouseLeave={(e) => {
+                      ;(e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+                    }}
+                  >
+                    Review All Sections
+                  </button>
+                  <button
+                    onClick={handleExport}
+                    disabled={exportLoading}
+                    className="rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-40"
+                    style={{
+                      backgroundColor: 'var(--gold)',
+                      color: '#0c0c0e',
+                    }}
+                  >
+                    {exportLoading ? 'Exporting…' : 'Export to Word'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Section tabs */}
             {sections.length > 0 && (
               <div
@@ -472,12 +589,32 @@ export default function DraftsPage() {
                         {s.page_limit}p
                       </span>
                     )}
-                    {wordCount(contents[s.title] ?? '') > 0 && (
-                      <span
-                        className="ml-1.5 w-1.5 h-1.5 rounded-full inline-block align-middle"
-                        style={{ backgroundColor: '#a78bfa' }}
-                      />
-                    )}
+                    {(() => {
+                      const wc = wordCount(contents[s.title] ?? '')
+                      if (wc === 0) return null
+                      if (wc < 100)
+                        return (
+                          <span
+                            className="ml-1.5 w-1.5 h-1.5 rounded-full inline-block align-middle"
+                            style={{ backgroundColor: '#d97706' }}
+                          />
+                        )
+                      return (
+                        <svg
+                          className="ml-1.5 w-3 h-3 inline-block align-middle"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#4a9e6e"
+                          strokeWidth={2.5}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      )
+                    })()}
                   </button>
                 ))}
               </div>
@@ -706,6 +843,46 @@ export default function DraftsPage() {
                       >
                         Save
                       </button>
+                      {sections.length > 1 && (
+                        <button
+                          onClick={() => {
+                            saveDraft(activeSection.title)
+                            if (nextSectionItem) {
+                              setSelectedSection(nextSectionItem.title)
+                            } else {
+                              setShowReviewModal(true)
+                            }
+                          }}
+                          className="rounded-md px-2.5 py-1 text-[11px] font-medium flex items-center gap-1 transition-colors"
+                          style={{
+                            backgroundColor: nextSectionItem
+                              ? 'var(--surface)'
+                              : 'var(--gold-bg)',
+                            border: nextSectionItem
+                              ? '1px solid var(--border)'
+                              : '1px solid var(--gold-border)',
+                            color: nextSectionItem ? 'var(--text-secondary)' : 'var(--gold)',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (nextSectionItem) {
+                              (e.currentTarget as HTMLElement).style.color =
+                                'var(--text-primary)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (nextSectionItem) {
+                              (e.currentTarget as HTMLElement).style.color =
+                                'var(--text-secondary)'
+                            }
+                          }}
+                        >
+                          {nextSectionItem ? (
+                            <>Next: {nextSectionItem.title} →</>
+                          ) : (
+                            <>Review application ✓</>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -742,9 +919,60 @@ export default function DraftsPage() {
             </div>
           </>
         )}
+        {showReviewModal && selectedGrant && (
+          <ReviewModal
+            grantName={selectedGrant.name}
+            sections={sections}
+            contents={contents}
+            onClose={() => setShowReviewModal(false)}
+          />
+        )}
+        {showSubmitModal && (
+          <SubmitModal
+            onConfirm={handleMarkSubmitted}
+            onClose={() => setShowSubmitModal(false)}
+          />
+        )}
       </main>
 
       {/* ── Right: Requirements panel ────────────────────────── */}
+      {!showRequirements && (
+        <aside
+          className="w-9 shrink-0 flex flex-col items-center pt-3 overflow-hidden"
+          style={{
+            borderLeft: '1px solid var(--border)',
+            backgroundColor: 'var(--surface)',
+          }}
+        >
+          <button
+            onClick={() => setShowRequirements(true)}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            title="Show requirements"
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+            }}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.75}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M8.25 6.75h12M8.25 12h12m-12 5.25h12"
+              />
+            </svg>
+          </button>
+        </aside>
+      )}
+      {showRequirements && (
       <aside
         className="w-[272px] shrink-0 flex flex-col overflow-hidden"
         style={{
@@ -753,7 +981,7 @@ export default function DraftsPage() {
         }}
       >
         <div
-          className="px-4 py-3"
+          className="px-4 py-3 flex items-center justify-between"
           style={{ borderBottom: '1px solid var(--border)' }}
         >
           <h2
@@ -762,6 +990,28 @@ export default function DraftsPage() {
           >
             Requirements
           </h2>
+          <button
+            onClick={() => setShowRequirements(false)}
+            className="p-1 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            title="Hide requirements"
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+            }}
+          >
+            <svg
+              className="w-3.5 h-3.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
         {!selectedGrant ? (
@@ -974,6 +1224,7 @@ export default function DraftsPage() {
           </div>
         )}
       </aside>
+      )}
     </div>
   )
 }
@@ -1540,6 +1791,185 @@ function AiDraftModal({
                 Rewrite current content to be more compelling and specific
               </p>
             </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Review modal ────────────────────────────────────────────── */
+
+function ReviewModal({
+  grantName,
+  sections,
+  contents,
+  onClose,
+}: {
+  grantName: string
+  sections: GrantSection[]
+  contents: Record<string, string>
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ backgroundColor: 'rgba(0,0,0,0.72)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-6 py-4 shrink-0"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <div>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+              Review Application
+            </h2>
+            <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-dim)' }}>
+              {grantName}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+            }}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+          {sections.map((s) => (
+            <div key={s.title}>
+              <h3
+                className="text-[10px] font-semibold uppercase tracking-widest mb-3"
+                style={{ color: 'var(--text-dim)' }}
+              >
+                {s.title}
+              </h3>
+              {contents[s.title]?.trim() ? (
+                <p
+                  style={{
+                    fontFamily: 'var(--font-source-serif, Georgia, serif)',
+                    fontSize: '15px',
+                    lineHeight: '1.8',
+                    color: 'var(--text-primary)',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {contents[s.title]}
+                </p>
+              ) : (
+                <p className="text-sm italic" style={{ color: 'var(--text-dim)' }}>
+                  No content written yet.
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Submit modal ────────────────────────────────────────────── */
+
+function SubmitModal({
+  onConfirm,
+  onClose,
+}: {
+  onConfirm: (date: string) => void
+  onClose: () => void
+}) {
+  const [date, setDate] = useState('')
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ backgroundColor: 'rgba(0,0,0,0.72)' }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
+      <div
+        className="w-full max-w-sm rounded-2xl"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
+        <div
+          className="px-6 pt-5 pb-4"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+            Mark as Submitted
+          </h2>
+          <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+            This will move the grant to Submitted status in your pipeline.
+          </p>
+        </div>
+        <div className="px-6 py-4">
+          <label
+            className="block mb-1.5 text-[11px] font-medium uppercase tracking-wider"
+            style={{ color: 'var(--text-dim)' }}
+          >
+            Submission date (optional)
+          </label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg text-sm"
+            style={{
+              backgroundColor: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-primary)',
+            }}
+          />
+        </div>
+        <div className="px-6 pb-5 flex items-center justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: 'var(--surface-2)',
+              border: '1px solid var(--border)',
+              color: 'var(--text-secondary)',
+            }}
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(date)}
+            className="px-3.5 py-1.5 rounded-lg text-xs font-medium"
+            style={{ backgroundColor: 'var(--gold)', color: '#0c0c0e' }}
+          >
+            Mark as Submitted
           </button>
         </div>
       </div>
