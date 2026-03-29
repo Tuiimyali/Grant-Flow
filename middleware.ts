@@ -1,19 +1,25 @@
 import { updateSession } from '@/lib/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Routes that don't require authentication
-const PUBLIC_PATHS = ['/auth/signin', '/auth/signup', '/']
+// Routes that require authentication
+const PROTECTED_PREFIXES = [
+  '/dashboard',
+  '/grants',
+  '/pipeline',
+  '/drafts',
+  '/snippets',
+  '/organization',
+  '/settings',
+]
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { response, user } = await updateSession(request)
-
   const { pathname } = request.nextUrl
-  const isPublic = PUBLIC_PATHS.some(
-    (p) => pathname === p || pathname.startsWith('/auth/')
-  )
 
-  // Redirect unauthenticated users to sign in
-  if (!user && !isPublic) {
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
+
+  // Redirect unauthenticated users away from protected routes
+  if (!user && isProtected) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/auth/signin'
     loginUrl.searchParams.set('redirectTo', pathname)
