@@ -543,10 +543,14 @@ export default function DraftsPage() {
                     }
                     onBlur={() => saveDraft(activeSection.title)}
                     placeholder={`Write the "${activeSection.title}" section here…`}
-                    className="flex-1 w-full resize-none px-6 py-5 text-sm leading-relaxed focus:outline-none font-mono"
+                    className="flex-1 w-full resize-none px-6 py-5 focus:outline-none"
                     style={{
                       backgroundColor: 'var(--surface)',
                       color: 'var(--text-primary)',
+                      fontFamily: 'var(--font-source-serif, Georgia, serif)',
+                      fontSize: '15px',
+                      lineHeight: '1.8',
+                      fontWeight: 400,
                     }}
                     spellCheck
                   />

@@ -1,20 +1,27 @@
 import type { Metadata } from 'next'
-import { DM_Sans, Cormorant_Garamond, Geist_Mono } from 'next/font/google'
+import { Instrument_Sans, Fraunces, Source_Serif_4, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import './globals.css'
 
-const dmSans = DM_Sans({
-  variable: '--font-dm-sans',
+const instrumentSans = Instrument_Sans({
+  variable: '--font-instrument-sans',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['400', '500', '600'],
   display: 'swap',
 })
 
-const cormorant = Cormorant_Garamond({
-  variable: '--font-cormorant',
+const fraunces = Fraunces({
+  variable: '--font-fraunces',
   subsets: ['latin'],
-  weight: ['300', '400', '600'],
+  weight: ['300', '400', '500'],
+  display: 'swap',
+})
+
+const sourceSerif = Source_Serif_4({
+  variable: '--font-source-serif',
+  subsets: ['latin'],
+  weight: ['400', '600'],
   display: 'swap',
 })
 
@@ -38,7 +45,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${dmSans.variable} ${cormorant.variable} ${geistMono.variable} antialiased`}
+        className={`${instrumentSans.variable} ${fraunces.variable} ${sourceSerif.variable} ${geistMono.variable} antialiased`}
       >
         {children}
         <Analytics />

@@ -51,8 +51,9 @@
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text-primary);
-  --font-sans: var(--font-dm-sans);
-  --font-display: var(--font-cormorant);
+  --font-sans: var(--font-instrument-sans);
+  --font-display: var(--font-fraunces);
+  --font-reading: var(--font-source-serif);
   --font-mono: var(--font-geist-mono);
   --color-sidebar: var(--sidebar-bg);
   --color-sidebar-border: var(--sidebar-border);
@@ -69,9 +70,10 @@ html {
 body {
   background: var(--bg);
   color: var(--text-primary);
-  font-family: var(--font-dm-sans, 'DM Sans', sans-serif);
-  font-size: 13px;
-  line-height: 1.6;
+  font-family: var(--font-instrument-sans, 'DM Sans', sans-serif);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,7 +82,41 @@ h1,
 h2,
 h3,
 .font-display {
-  font-family: var(--font-cormorant, 'Cormorant Garamond', Georgia, serif);
+  font-family: var(--font-fraunces, 'Cormorant Garamond', serif);
+  font-weight: 500;
+}
+
+/* ── Element-level typography defaults ────────────────────── */
+button {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+td,
+th {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+nav a {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+nav a[aria-current='page'],
+nav a.active {
+  font-weight: 500;
+}
+
+/* ── Stat numbers (Fraunces light) ────────────────────────── */
+.stat-number {
+  font-family: var(--font-fraunces, 'Cormorant Garamond', serif);
+  font-weight: 300;
+}
+
+/* ── Long-form reading / writing ──────────────────────────── */
+.font-reading {
+  font-family: var(--font-source-serif, Georgia, serif);
 }
 
 /* ── Scrollbar ────────────────────────────────────────────── */
@@ -241,9 +277,9 @@ option {
 
 /* ── Section label ────────────────────────────────────────── */
 .section-label {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--text-dim);
   font-weight: 500;
 }
