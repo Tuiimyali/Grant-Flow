@@ -6,7 +6,6 @@ import PageHeader from '@/components/page-header'
 import { DeadlineBadge } from '@/components/badges'
 import { useGrants } from '@/lib/hooks/use-grants'
 import { formatCurrency } from '@/lib/utils/formatting'
-import { fitBand, FIT_COLORS } from '@/lib/utils/scoring'
 import type { GrantsFullRow, PipelineStatus } from '@/lib/types/database.types'
 
 /* ── Column definitions ─────────────────────────────────────── */
@@ -18,12 +17,12 @@ type ColumnDef = {
 }
 
 const COLUMNS: ColumnDef[] = [
-  { status: 'discovered', label: 'Discovered', dotColor: '#5A5A60' },
-  { status: 'researching', label: 'Researching', dotColor: '#38bdf8' },
-  { status: 'writing', label: 'Writing', dotColor: '#a78bfa' },
+  { status: 'discovered', label: 'Discovered', dotColor: '#42424a' },
+  { status: 'researching', label: 'Researching', dotColor: '#4a7aaa' },
+  { status: 'writing', label: 'Writing', dotColor: '#8a64c8' },
   { status: 'submitted', label: 'Submitted', dotColor: '#C7A94E' },
   { status: 'awarded', label: 'Awarded', dotColor: '#4A9E6E' },
-  { status: 'declined', label: 'Declined', dotColor: '#C45A5A' },
+  { status: 'declined', label: 'Declined', dotColor: '#a84a4a' },
 ]
 
 const STATUS_LABELS: Record<PipelineStatus, string> = {
@@ -175,55 +174,36 @@ function KanbanColumn({
 }) {
   return (
     <div
-      className="flex flex-col w-[248px] shrink-0 rounded-xl overflow-hidden"
-      style={{
-        backgroundColor: 'var(--surface)',
-        border: '1px solid var(--border)',
-      }}
+      className="flex flex-col w-[240px] shrink-0 rounded-[10px] overflow-hidden"
+      style={{ backgroundColor: '#111113' }}
     >
       {/* Column header */}
-      <div
-        className="flex items-center gap-2 px-3 py-2.5"
-        style={{ borderBottom: '1px solid var(--border)' }}
-      >
+      <div className="flex items-center gap-2 px-3 pt-3 pb-2">
         <span
-          className="w-2 h-2 rounded-full shrink-0"
-          style={{ backgroundColor: col.dotColor }}
+          className="shrink-0 rounded-full"
+          style={{ width: 5, height: 5, backgroundColor: col.dotColor }}
         />
+        <span className="flex-1 section-label">{col.label}</span>
         <span
-          className="flex-1 text-xs font-semibold uppercase tracking-wide"
-          style={{ color: 'var(--text-secondary)' }}
-        >
-          {col.label}
-        </span>
-        <span
-          className="rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums"
-          style={{
-            backgroundColor: 'var(--surface-3)',
-            color: 'var(--text-dim)',
-          }}
+          className="text-[11px] tabular-nums"
+          style={{ color: 'var(--text-dim)' }}
         >
           {loading ? '—' : grants.length}
         </span>
       </div>
 
       {/* Column total */}
-      <div
-        className="px-3 py-1.5"
-        style={{
-          borderBottom: '1px solid var(--border)',
-          backgroundColor: 'var(--surface-2)',
-        }}
-      >
+      <div className="px-3 pb-2.5">
         <span
-          className="text-[11px] font-medium"
-          style={{ color: 'var(--text-dim)' }}
+          style={{
+            fontFamily: 'var(--font-cormorant, serif)',
+            fontSize: '16px',
+            fontWeight: 300,
+            color: total > 0 ? 'var(--gold)' : 'var(--text-dim)',
+            letterSpacing: '-0.01em',
+          }}
         >
-          {loading
-            ? '…'
-            : total > 0
-              ? formatCurrency(total, { compact: true })
-              : 'No amounts'}
+          {loading ? '…' : total > 0 ? formatCurrency(total, { compact: true }) : '—'}
         </span>
       </div>
 
@@ -264,21 +244,23 @@ function GrantCard({
   currentStatus: PipelineStatus
   onMove: (id: string, status: string) => void
 }) {
-  const band = fitBand(g.fit_score)
-  const colors = FIT_COLORS[band]
-
   return (
     <div
-      className="rounded-lg p-3 space-y-2.5 transition-all"
+      className="rounded-[8px] p-3 space-y-2.5"
       style={{
-        backgroundColor: 'var(--surface-2)',
-        border: '1px solid var(--border)',
+        backgroundColor: 'var(--surface)',
+        border: '1px solid transparent',
+        transition: 'border-color 150ms ease, box-shadow 150ms ease',
       }}
       onMouseEnter={(e) => {
-        ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border-2)'
+        const el = e.currentTarget as HTMLElement
+        el.style.borderColor = 'var(--border)'
+        el.style.boxShadow = '0 2px 12px rgba(0,0,0,0.28)'
       }}
       onMouseLeave={(e) => {
-        ;(e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'
+        const el = e.currentTarget as HTMLElement
+        el.style.borderColor = 'transparent'
+        el.style.boxShadow = ''
       }}
     >
       {/* Name + funder */}
@@ -311,27 +293,25 @@ function GrantCard({
       <div className="flex flex-wrap gap-1.5 items-center">
         {g.fit_score != null ? (
           <span
-            className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums ${colors.bg} ${colors.text} ${colors.border}`}
+            style={{
+              display: 'inline-flex',
+              borderRadius: '4px',
+              padding: '1px 6px',
+              fontSize: '11px',
+              fontWeight: 500,
+              color: g.fit_score >= 80 ? 'var(--gold)' : g.fit_score >= 60 ? 'var(--text-secondary)' : 'var(--text-dim)',
+            }}
           >
             {g.fit_score}%
           </span>
         ) : (
-          <span
-            className="inline-flex rounded-full border px-2 py-0.5 text-[11px]"
-            style={{
-              backgroundColor: 'var(--surface-3)',
-              color: 'var(--text-dim)',
-              borderColor: 'var(--border)',
-            }}
-          >
-            No score
-          </span>
+          <span style={{ fontSize: '11px', color: 'var(--text-dim)' }}>—</span>
         )}
 
         <DeadlineBadge date={g.deadline} />
 
         {g.is_renewal && (
-          <span className="inline-flex rounded-full border px-2 py-0.5 text-[11px] font-medium bg-amber-500/10 text-amber-400 border-amber-500/20">
+          <span style={{ fontSize: '11px', color: 'var(--warning)', background: 'var(--warning-bg)', borderRadius: '4px', padding: '1px 6px' }}>
             Renewal
           </span>
         )}

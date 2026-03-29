@@ -24,11 +24,11 @@ interface PageHeaderProps {
 /* ── Action button ──────────────────────────────────────────── */
 function ActionButton({ action }: { action: ActionProps }) {
   const base =
-    'inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-150'
+    'inline-flex items-center gap-1.5 rounded-md px-5 py-1.5 text-[13px] font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-opacity duration-150'
 
   const secondaryStyle: React.CSSProperties = {
-    color: 'var(--text-secondary)',
-    border: '1px solid var(--border)',
+    border: '1px solid var(--gold)',
+    color: 'var(--gold)',
   }
   const primaryStyle: React.CSSProperties = {
     backgroundColor: 'var(--gold)',
@@ -232,18 +232,20 @@ export default function PageHeader({
 }: PageHeaderProps) {
   return (
     <header
-      className="flex items-center justify-between px-6 py-4"
+      className="flex items-center justify-between px-6"
       style={{
-        backgroundColor: 'var(--surface)',
+        height: '52px',
+        backgroundColor: 'var(--bg)',
         borderBottom: '1px solid var(--border)',
       }}
     >
       <div>
         <h1
-          className="font-semibold leading-tight tracking-tight"
+          className="leading-none tracking-tight"
           style={{
             fontFamily: 'var(--font-cormorant, serif)',
-            fontSize: '20px',
+            fontSize: '22px',
+            fontWeight: 600,
             color: 'var(--text-primary)',
           }}
         >
@@ -251,8 +253,7 @@ export default function PageHeader({
         </h1>
         {subtitle && (
           <p
-            className="mt-0.5 text-xs tracking-wide"
-            style={{ color: 'var(--text-dim)' }}
+            className="mt-0.5 section-label"
           >
             {subtitle}
           </p>

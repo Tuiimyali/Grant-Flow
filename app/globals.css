@@ -5,42 +5,42 @@
   /* Backgrounds */
   --bg: #0c0c0e;
   --surface: #141416;
-  --surface-2: #1a1a1e;
-  --surface-3: #1f1f24;
+  --surface-2: #18181c;
+  --surface-3: #1e1e24;
 
   /* Borders */
-  --border: #222228;
-  --border-2: #2c2c34;
+  --border: #1e1e26;
+  --border-2: #282830;
 
   /* Text */
   --text-primary: #e8e6e1;
-  --text-secondary: #8a8a8f;
-  --text-dim: #4a4a50;
+  --text-secondary: #7a7a82;
+  --text-dim: #42424a;
 
   /* Gold accent */
   --gold: #c7a94e;
   --gold-muted: #9a7d3a;
-  --gold-bg: rgba(199, 169, 78, 0.08);
-  --gold-border: rgba(199, 169, 78, 0.18);
+  --gold-bg: rgba(199, 169, 78, 0.07);
+  --gold-border: rgba(199, 169, 78, 0.15);
 
-  /* Semantic colours */
+  /* Semantic colours — intentionally muted */
   --success: #4a9e6e;
-  --success-bg: rgba(74, 158, 110, 0.1);
-  --success-border: rgba(74, 158, 110, 0.2);
-  --warning: #d4913a;
-  --warning-bg: rgba(212, 145, 58, 0.1);
-  --warning-border: rgba(212, 145, 58, 0.2);
-  --danger: #c45a5a;
-  --danger-bg: rgba(196, 90, 90, 0.1);
-  --danger-border: rgba(196, 90, 90, 0.2);
-  --info: #5a8ac4;
-  --info-bg: rgba(90, 138, 196, 0.1);
-  --info-border: rgba(90, 138, 196, 0.2);
+  --success-bg: rgba(74, 158, 110, 0.07);
+  --success-border: rgba(74, 158, 110, 0.14);
+  --warning: #b87d38;
+  --warning-bg: rgba(184, 125, 56, 0.08);
+  --warning-border: rgba(184, 125, 56, 0.15);
+  --danger: #a84a4a;
+  --danger-bg: rgba(168, 74, 74, 0.08);
+  --danger-border: rgba(168, 74, 74, 0.15);
+  --info: #4a7aaa;
+  --info-bg: rgba(74, 122, 170, 0.08);
+  --info-border: rgba(74, 122, 170, 0.15);
 
   /* Sidebar */
-  --sidebar-bg: #0e0e11;
-  --sidebar-border: #1a1a1f;
-  --sidebar-item-hover: rgba(255, 255, 255, 0.03);
+  --sidebar-bg: #0a0a0d;
+  --sidebar-border: #141418;
+  --sidebar-item-hover: rgba(255, 255, 255, 0.025);
 
   /* Aliases */
   --surface-border: var(--border);
@@ -196,4 +196,54 @@ option {
 }
 .toast-enter {
   animation: slideIn 200ms ease both;
+}
+
+/* ── Card hover ───────────────────────────────────────────── */
+.card {
+  background-color: var(--surface);
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+.card:hover {
+  border-color: var(--border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.28);
+}
+
+/* ── Table row hover ──────────────────────────────────────── */
+.row-hover {
+  transition: background-color 120ms ease;
+}
+.row-hover:hover {
+  background-color: var(--surface-2);
+}
+
+/* ── Modal backdrop ───────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+/* ── Section label ────────────────────────────────────────── */
+.section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  font-weight: 500;
 }

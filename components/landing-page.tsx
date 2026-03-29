@@ -101,193 +101,200 @@ function BrowserFrame({ children, url }: { children: React.ReactNode; url: strin
   )
 }
 
-/* ── Dashboard mockup (hero) ─────────────────────────────────────── */
+/* ── Dashboard mockup (hero) — mirrors real dashboard layout ─────── */
 function DashboardMockup() {
+  // Matches real StatCard labels exactly
   const stats = [
-    { label: 'Active Grants', value: '12', sub: '+2 this week' },
-    { label: 'Pipeline Value', value: '$2.4M', sub: 'Across all stages' },
-    { label: 'Submitted', value: '3', sub: 'Awaiting decision' },
-    { label: 'Avg Fit Score', value: '78%', sub: 'Above threshold' },
+    { label: 'Active Pipeline', value: '8', sub: '$1.8M potential' },
+    { label: 'Submitted', value: '3', sub: 'awaiting decision' },
+    { label: 'Awarded', value: '$380K', sub: '2 grants won' },
+    { label: 'Avg Fit Score', value: '76%', sub: 'Strong match' },
   ]
+  // Matches real deadlines list: left border urgency indicator + grant name + days badge
   const deadlines = [
-    { name: 'Blandin Foundation', days: 5, fit: 92, urgent: true },
-    { name: 'NEA Arts Engagement', days: 14, fit: 85, urgent: false },
-    { name: 'First Nations Dev Inst.', days: 32, fit: 78, urgent: false },
+    { name: 'Blandin Foundation Rural Tech', days: 5, border: '#a84a4a' },
+    { name: 'NEA Arts Engagement Grant', days: 12, border: '#b87d38' },
+    { name: 'First Nations Dev Institute', days: 28, border: 'transparent' },
+    { name: 'USDA Rural Development', days: 45, border: 'transparent' },
   ]
-  const pipeline = [
-    { label: 'Discovered', count: 5, pct: 33, color: '#5a5a8a' },
-    { label: 'Researching', count: 3, pct: 25, color: '#4a6a9a' },
-    { label: 'Writing', count: 3, pct: 22, color: '#C7A94E' },
-    { label: 'Submitted', count: 3, pct: 14, color: '#4a9e6e' },
-    { label: 'Awarded', count: 2, pct: 6, color: '#6a6a8f' },
+  // Matches real pipeline segments: In Progress, Submitted, Awarded, Declined
+  const segments = [
+    { label: 'In Progress', pct: 57, color: '#4a6a9a' },
+    { label: 'Submitted',   pct: 20, color: '#C7A94E' },
+    { label: 'Awarded',     pct: 17, color: '#4A9E6E' },
+    { label: 'Declined',    pct: 6,  color: '#3a3a44' },
   ]
+  const nav = ['Dashboard', 'Grants', 'Pipeline', 'Drafts', 'Snippets', 'Organization', 'Settings']
+
   return (
-    <div style={{ display: 'flex', background: '#0c0c0e', minHeight: '310px', overflow: 'hidden' }}>
-      {/* Mini sidebar */}
+    <div style={{ display: 'flex', background: '#0c0c0e', minHeight: '340px', overflow: 'hidden' }}>
+      {/* Sidebar — matches real 180px sidebar */}
       <div
         style={{
-          width: '42px',
-          background: '#090909',
+          width: '120px',
+          background: '#0a0a0d',
           borderRight: '1px solid #141418',
-          padding: '14px 0',
+          padding: '0',
           display: 'flex',
           flexDirection: 'column',
-          alignItems: 'center',
-          gap: '9px',
           flexShrink: 0,
         }}
       >
-        <div style={{ width: 20, height: 3, background: '#C7A94E', borderRadius: 2 }} />
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} style={{ width: 20, height: 3, background: '#1e1e26', borderRadius: 2 }} />
-        ))}
-      </div>
-      {/* Main content */}
-      <div style={{ flex: 1, padding: '14px', overflow: 'hidden' }}>
-        {/* Stats */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '7px',
-            marginBottom: '14px',
-          }}
-        >
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              style={{
-                background: '#131315',
-                border: '1px solid #1e1e26',
-                borderRadius: 6,
-                padding: '9px 10px',
-              }}
-            >
-              <div style={{ fontSize: '8.5px', color: '#484852', marginBottom: 3 }}>{s.label}</div>
-              <div
-                style={{ fontSize: '17px', fontWeight: 300, color: '#e8e6e1', letterSpacing: '-0.02em' }}
-              >
-                {s.value}
-              </div>
-              <div style={{ fontSize: '7.5px', color: '#32323c', marginTop: 2 }}>{s.sub}</div>
+        {/* Logo */}
+        <div style={{
+          height: '34px',
+          display: 'flex',
+          alignItems: 'center',
+          paddingInline: '13px',
+          borderBottom: '1px solid #141418',
+          fontFamily: 'var(--font-cormorant, serif)',
+          fontSize: '11px',
+          fontWeight: 600,
+          color: '#e8e6e1',
+        }}>
+          Fieldwork
+        </div>
+        {/* Nav items */}
+        <div style={{ paddingBlock: '8px', flex: 1 }}>
+          {nav.map((item, i) => (
+            <div key={item} style={{
+              height: '22px',
+              display: 'flex',
+              alignItems: 'center',
+              paddingInline: '13px',
+              fontSize: '8.5px',
+              color: i === 0 ? '#C7A94E' : '#42424a',
+              borderLeft: `2px solid ${i === 0 ? '#C7A94E' : 'transparent'}`,
+              fontWeight: i === 0 ? 500 : 400,
+            }}>
+              {item}
             </div>
           ))}
         </div>
-        {/* Bottom row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '7px' }}>
-          {/* Deadlines */}
-          <div
-            style={{
-              background: '#131315',
-              border: '1px solid #1e1e26',
-              borderRadius: 6,
-              padding: '10px',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '7.5px',
-                color: '#484852',
-                marginBottom: 8,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Upcoming Deadlines
-            </div>
-            {deadlines.map((d) => (
-              <div
-                key={d.name}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginBottom: 7,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: '9px',
-                    color: '#9a9a9f',
-                    flex: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {d.name}
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    gap: 5,
-                    alignItems: 'center',
-                    flexShrink: 0,
-                    marginLeft: 8,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: '8px',
-                      padding: '1px 5px',
-                      borderRadius: 3,
-                      background: d.urgent ? 'rgba(196,90,90,0.14)' : 'rgba(255,255,255,0.04)',
-                      color: d.urgent ? '#c45a5a' : '#484852',
-                    }}
-                  >
-                    {d.days}d
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '8.5px',
-                      color: d.fit >= 85 ? '#4a9e6e' : d.fit >= 70 ? '#C7A94E' : '#5a5a62',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {d.fit}%
-                  </span>
-                </div>
+        {/* Sign out */}
+        <div style={{
+          height: '22px',
+          display: 'flex',
+          alignItems: 'center',
+          paddingInline: '13px',
+          fontSize: '8.5px',
+          color: '#2a2a34',
+          borderTop: '1px solid #141418',
+        }}>
+          Sign out
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div style={{ flex: 1, overflow: 'hidden' }}>
+        {/* Page header — matches real header height/style */}
+        <div style={{
+          height: '34px',
+          display: 'flex',
+          alignItems: 'center',
+          paddingInline: '16px',
+          borderBottom: '1px solid #1e1e26',
+          background: '#0c0c0e',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-cormorant, serif)',
+            fontSize: '14px',
+            fontWeight: 600,
+            color: '#e8e6e1',
+          }}>Dashboard</span>
+        </div>
+
+        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {/* Stat cards — 4 columns matching real layout */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+            {stats.map((s) => (
+              <div key={s.label} style={{
+                background: '#141416',
+                borderRadius: 6,
+                padding: '8px 10px',
+              }}>
+                <div style={{
+                  fontSize: '7px',
+                  color: '#42424a',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.07em',
+                  marginBottom: 4,
+                }}>{s.label}</div>
+                <div style={{
+                  fontFamily: 'var(--font-cormorant, serif)',
+                  fontSize: '18px',
+                  fontWeight: 300,
+                  color: '#e8e6e1',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1,
+                }}>{s.value}</div>
+                <div style={{ fontSize: '7px', color: '#2a2a34', marginTop: 3 }}>{s.sub}</div>
               </div>
             ))}
           </div>
-          {/* Pipeline */}
-          <div
-            style={{
-              background: '#131315',
-              border: '1px solid #1e1e26',
-              borderRadius: 6,
-              padding: '10px',
-            }}
-          >
-            <div
-              style={{
-                fontSize: '7.5px',
-                color: '#484852',
-                marginBottom: 8,
-                textTransform: 'uppercase',
-                letterSpacing: '0.06em',
-              }}
-            >
-              Pipeline
+
+          {/* Pipeline by Value — single segmented bar matching real layout */}
+          <div style={{ background: '#141416', borderRadius: 6, padding: '8px 10px' }}>
+            <div style={{
+              fontSize: '7px',
+              color: '#42424a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.07em',
+              marginBottom: 6,
+            }}>Pipeline by Value</div>
+            <div style={{
+              display: 'flex',
+              height: 3,
+              borderRadius: 2,
+              overflow: 'hidden',
+              background: '#1e1e24',
+              marginBottom: 6,
+            }}>
+              {segments.map((s) => (
+                <div key={s.label} style={{ width: `${s.pct}%`, background: s.color }} />
+              ))}
             </div>
-            {pipeline.map((p) => (
-              <div key={p.label} style={{ marginBottom: 6 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 2 }}>
-                  <span style={{ fontSize: '8px', color: '#6a6a72' }}>{p.label}</span>
-                  <span style={{ fontSize: '8px', color: '#3a3a44' }}>{p.count}</span>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {segments.map((s) => (
+                <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: '50%', background: s.color, flexShrink: 0 }} />
+                  <span style={{ fontSize: '7px', color: '#42424a' }}>{s.label}</span>
                 </div>
-                <div
-                  style={{ height: 3, background: '#1a1a22', borderRadius: 2, overflow: 'hidden' }}
-                >
-                  <div
-                    style={{
-                      width: `${p.pct}%`,
-                      height: '100%',
-                      background: p.color,
-                      borderRadius: 2,
-                    }}
-                  />
-                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Upcoming Deadlines — matches real list with left border urgency */}
+          <div style={{ background: '#141416', borderRadius: 6, overflow: 'hidden' }}>
+            <div style={{
+              fontSize: '7px',
+              color: '#42424a',
+              textTransform: 'uppercase',
+              letterSpacing: '0.07em',
+              padding: '8px 10px 4px',
+            }}>Upcoming Deadlines</div>
+            {deadlines.map((d) => (
+              <div key={d.name} style={{
+                display: 'flex',
+                alignItems: 'center',
+                padding: '5px 10px',
+                borderLeft: `2px solid ${d.border}`,
+                gap: 8,
+              }}>
+                <span style={{
+                  fontSize: '8.5px',
+                  color: '#9a9a9f',
+                  flex: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>{d.name}</span>
+                <span style={{
+                  fontSize: '8px',
+                  color: d.border !== 'transparent' ? d.border : '#42424a',
+                  flexShrink: 0,
+                  fontWeight: 500,
+                }}>{d.days}d</span>
               </div>
             ))}
           </div>

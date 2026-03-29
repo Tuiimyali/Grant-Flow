@@ -23,10 +23,10 @@ const S_AWARDED = ['awarded']
 const S_PIPELINE = [...S_ACTIVE, ...S_SUBMITTED]
 
 const PIPELINE_SEGMENTS = [
-  { statuses: S_ACTIVE, label: 'In Progress', color: '#3b82f6' },
+  { statuses: S_ACTIVE, label: 'In Progress', color: '#4a6a9a' },
   { statuses: S_SUBMITTED, label: 'Submitted', color: '#C7A94E' },
   { statuses: S_AWARDED, label: 'Awarded', color: '#4A9E6E' },
-  { statuses: ['declined'], label: 'Declined', color: '#5A5A60' },
+  { statuses: ['declined'], label: 'Declined', color: '#3a3a44' },
 ] as const
 
 /* ── Helpers ───────────────────────────────────────────────── */
@@ -82,10 +82,7 @@ export default async function DashboardPage() {
   if (grants.length === 0) {
     return (
       <>
-        <PageHeader
-          title="Dashboard"
-          subtitle="Overview of your grant activity"
-        />
+        <PageHeader title="Dashboard" />
         <WelcomeOnboarding profileDone={profileDone} />
       </>
     )
@@ -133,15 +130,12 @@ export default async function DashboardPage() {
   /* ── Render ──────────────────────────────────────────────── */
   return (
     <>
-      <PageHeader
-        title="Dashboard"
-        subtitle="Overview of your grant activity"
-      />
+      <PageHeader title="Dashboard" />
       <DashboardDeadlineBanners />
 
       <div className="p-6 space-y-6">
         {/* ── Stat cards ─────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           <StatCard
             label="Active Pipeline"
             value={pipeline.length}
@@ -175,13 +169,10 @@ export default async function DashboardPage() {
         {/* ── Pipeline dollar bar ─────────────────────────── */}
         {grandTotal > 0 && (
           <div
-            className="rounded-xl p-5"
+            className="rounded-[10px] p-5"
             style={{ backgroundColor: 'var(--surface)' }}
           >
-            <h2
-              className="text-[11px] font-medium uppercase tracking-widest mb-3"
-              style={{ color: 'var(--text-dim)' }}
-            >
+            <h2 className="section-label mb-4">
               Pipeline by Value
             </h2>
 
@@ -231,14 +222,9 @@ export default async function DashboardPage() {
         )}
 
         {/* ── Upcoming deadlines ──────────────────────────── */}
-        <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
+        <div className="rounded-[10px] overflow-hidden" style={{ backgroundColor: 'var(--surface)' }}>
           <div className="px-5 pt-4 pb-3">
-            <h2
-              className="text-[11px] font-medium uppercase tracking-widest"
-              style={{ color: 'var(--text-dim)' }}
-            >
-              Upcoming Deadlines
-            </h2>
+            <h2 className="section-label">Upcoming Deadlines</h2>
           </div>
 
           {upcoming.length === 0 ? (
@@ -298,27 +284,23 @@ function StatCard({
 }) {
   return (
     <div
-      className="rounded-xl p-5"
+      className="rounded-[10px] p-5"
       style={{ backgroundColor: 'var(--surface)' }}
     >
-      <p
-        className="text-[11px] font-medium uppercase tracking-widest mb-2"
-        style={{ color: 'var(--text-dim)' }}
-      >
-        {label}
-      </p>
+      <p className="section-label mb-3">{label}</p>
       <p
         className="leading-none tabular-nums"
         style={{
           fontFamily: 'var(--font-cormorant, serif)',
-          fontSize: '32px',
-          fontWeight: 600,
+          fontSize: '34px',
+          fontWeight: 300,
           color: 'var(--text-primary)',
+          letterSpacing: '-0.02em',
         }}
       >
         {value}
       </p>
-      <p className="text-xs mt-1.5" style={{ color: 'var(--text-dim)' }}>
+      <p className="text-xs mt-2" style={{ color: 'var(--text-dim)' }}>
         {sub}
       </p>
     </div>
@@ -382,14 +364,15 @@ function WelcomeOnboarding({ profileDone }: { profileDone: boolean }) {
       </div>
 
       <h1
-        className="text-2xl font-bold mb-2 text-center"
+        className="mb-2 text-center"
         style={{
           fontFamily: 'var(--font-cormorant, serif)',
           fontSize: '32px',
+          fontWeight: 300,
           color: 'var(--text-primary)',
         }}
       >
-        Welcome to Grant Intelligence Workspace
+        Welcome to Fieldwork
       </h1>
       <p
         className="text-sm max-w-md text-center mb-10 leading-relaxed"
