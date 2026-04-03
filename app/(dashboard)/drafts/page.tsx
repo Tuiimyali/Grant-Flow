@@ -5,6 +5,7 @@ import { DeadlineBadge } from '@/components/badges'
 import { useGrants } from '@/lib/hooks/use-grants'
 import { useDrafts, type SaveStatus } from '@/lib/hooks/use-drafts'
 import { useSnippets } from '@/lib/hooks/use-snippets'
+import { getFunderPolicy, type FunderPolicy, type FunderPolicyLevel } from '@/lib/data/funder-policies'
 import { SNIPPET_CATEGORIES } from '@/lib/types/database.types'
 import { formatCurrency, formatDeadline } from '@/lib/utils/formatting'
 import { exportDraftAsDocx } from '@/lib/utils/export-draft'
@@ -75,6 +76,8 @@ export default function DraftsPage() {
   const [showRequirements, setShowRequirements] = useState(true)
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [showSubmitModal, setShowSubmitModal] = useState(false)
+  const [showProhibitsConfirm, setShowProhibitsConfirm] = useState(false)
+  const [dismissedPolicyGrantIds, setDismissedPolicyGrantIds] = useState<Set<string>>(new Set())
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -91,6 +94,8 @@ export default function DraftsPage() {
   } = useDrafts(selectedId)
 
   const sections: GrantSection[] = detail?.sections ?? []
+
+  const funderPolicy = getFunderPolicy(selectedGrant?.funder)
 
   useEffect(() => {
     if (
@@ -642,6 +647,18 @@ export default function DraftsPage() {
               </div>
             )}
 
+            {/* Funder policy alert */}
+            {funderPolicy &&
+              selectedId != null &&
+              !dismissedPolicyGrantIds.has(selectedId) && (
+                <FunderPolicyBanner
+                  policy={funderPolicy}
+                  onDismiss={() =>
+                    setDismissedPolicyGrantIds((prev) => new Set([...prev, selectedId!]))
+                  }
+                />
+              )}
+
             {/* Editor body */}
             <div className="flex-1 flex flex-col min-h-0">
               {draftLoading ? (
@@ -763,7 +780,9 @@ export default function DraftsPage() {
                       </button>
                       <button
                         onClick={() => {
-                          if (activeContent.trim()) {
+                          if (funderPolicy?.level === 'prohibits') {
+                            setShowProhibitsConfirm(true)
+                          } else if (activeContent.trim()) {
                             setShowAiModal(true)
                           } else {
                             handleAiDraft('generate')
@@ -899,6 +918,21 @@ export default function DraftsPage() {
                       onGenerate={() => handleAiDraft('generate')}
                       onImprove={() => handleAiDraft('improve')}
                       onClose={() => setShowAiModal(false)}
+                    />
+                  )}
+
+                  {showProhibitsConfirm && funderPolicy && (
+                    <ProhibitsConfirmModal
+                      funderName={selectedGrant?.funder ?? ''}
+                      onProceed={() => {
+                        setShowProhibitsConfirm(false)
+                        if (activeContent.trim()) {
+                          setShowAiModal(true)
+                        } else {
+                          handleAiDraft('generate')
+                        }
+                      }}
+                      onClose={() => setShowProhibitsConfirm(false)}
                     />
                   )}
 
@@ -1794,6 +1828,176 @@ function AiDraftModal({
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ── Prohibits confirmation modal ───────────────────────────── */
+
+function ProhibitsConfirmModal({
+  funderName,
+  onProceed,
+  onClose,
+}: {
+  funderName: string
+  onProceed: () => void
+  onClose: () => void
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
+    >
+      <div
+        className="rounded-2xl w-full max-w-sm"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid rgba(168,74,74,0.4)',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+        }}
+      >
+        <div
+          className="flex items-center justify-between px-5 py-4"
+          style={{ borderBottom: '1px solid var(--border)' }}
+        >
+          <div className="flex items-center gap-2">
+            <span style={{ color: '#e57373', fontSize: '16px' }}>⚠</span>
+            <h2 className="text-sm font-semibold" style={{ color: '#e57373' }}>
+              AI Policy Warning
+            </h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--text-dim)' }}
+            onMouseEnter={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--surface-2)'
+            }}
+            onMouseLeave={(e) => {
+              ;(e.currentTarget as HTMLElement).style.color = 'var(--text-dim)'
+              ;(e.currentTarget as HTMLElement).style.backgroundColor = ''
+            }}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="px-5 py-4 space-y-4">
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            <strong style={{ color: 'var(--text-primary)' }}>{funderName}</strong> prohibits
+            AI-generated applications. AI-drafted content may cause your application to be
+            rejected.
+          </p>
+          <p className="text-xs leading-relaxed" style={{ color: 'var(--text-dim)' }}>
+            If you proceed, use the draft as a starting point only and substantially rewrite
+            it in your own voice before submitting.
+          </p>
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={onClose}
+              className="flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors"
+              style={{
+                backgroundColor: 'var(--surface-2)',
+                border: '1px solid var(--border)',
+                color: 'var(--text-secondary)',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLElement).style.color = 'var(--text-secondary)'
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onProceed}
+              className="flex-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors"
+              style={{
+                backgroundColor: 'rgba(168,74,74,0.15)',
+                border: '1px solid rgba(168,74,74,0.35)',
+                color: '#e57373',
+              }}
+              onMouseEnter={(e) => {
+                ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(168,74,74,0.25)'
+              }}
+              onMouseLeave={(e) => {
+                ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(168,74,74,0.15)'
+              }}
+            >
+              Proceed anyway
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ── Funder policy banner ────────────────────────────────────── */
+
+const POLICY_BANNER_STYLES: Record<
+  FunderPolicyLevel,
+  { borderColor: string; bg: string; labelColor: string; label: string }
+> = {
+  prohibits: {
+    borderColor: '#C45A5A',
+    bg: 'rgba(196,90,90,0.08)',
+    labelColor: '#e57373',
+    label: 'AI Prohibited',
+  },
+  restricts: {
+    borderColor: '#D4913A',
+    bg: 'rgba(212,145,58,0.08)',
+    labelColor: '#d4a04a',
+    label: 'AI Restricted',
+  },
+  requires_disclosure: {
+    borderColor: '#C7A94E',
+    bg: 'rgba(199,169,78,0.08)',
+    labelColor: '#c9b23a',
+    label: 'Disclosure Required',
+  },
+}
+
+function FunderPolicyBanner({
+  policy,
+  onDismiss,
+}: {
+  policy: FunderPolicy
+  onDismiss: () => void
+}) {
+  const styles = POLICY_BANNER_STYLES[policy.level]
+
+  return (
+    <div
+      className="shrink-0 flex items-start gap-3 px-4 py-2.5 text-[11px]"
+      style={{
+        backgroundColor: styles.bg,
+        borderLeft: `3px solid ${styles.borderColor}`,
+        borderBottom: '1px solid var(--border)',
+      }}
+    >
+      <span
+        className="shrink-0 mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+        style={{ backgroundColor: `${styles.borderColor}22`, color: styles.labelColor }}
+      >
+        {styles.label}
+      </span>
+      <span className="flex-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+        {policy.message}
+      </span>
+      <button
+        onClick={onDismiss}
+        className="shrink-0 opacity-50 transition-opacity hover:opacity-100"
+        style={{ color: 'var(--text-dim)' }}
+      >
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
+      </button>
     </div>
   )
 }
